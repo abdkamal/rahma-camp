@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f5e57">
+<title>مخيم الرحمة للنازحين</title>
+<meta name="description" content="استمارة تسجيل بيانات العائلات — مخيم الرحمة للنازحين">
+<meta property="og:title" content="مخيم الرحمة للنازحين">
+<meta property="og:description" content="استمارة تسجيل بيانات العائلات">
+<style>
+:root{
+  --bg:#f5f1ea; --surface:#ffffff; --ink:#1d2726; --muted:#66706e; --line:#e2dbcf;
+  --brand:#0f5e57; --brand-ink:#ffffff; --brand-soft:#e3f0ee; --accent:#b7832f;
+  --danger:#b3261e; --danger-soft:#fdecea; --ok:#1e7a46;
+  --radius:14px; --shadow:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#101413; --surface:#1a201f; --ink:#e7ecea; --muted:#9aa5a2; --line:#2c3533;
+    --brand:#3fa597; --brand-ink:#08201d; --brand-soft:#173230; --accent:#d9a24a;
+    --danger:#f2867c; --danger-soft:#3a1f1d; --ok:#5fcf8f;
+    --shadow:none;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI","Noto Sans Arabic",Tahoma,sans-serif;
+  font-size:16px; line-height:1.6;
+}
+.wrap{max-width:640px; margin:0 auto; padding:0 16px}
+
+/* الرأس */
+.top{position:sticky; top:0; z-index:5; background:var(--brand); color:var(--brand-ink); box-shadow:0 2px 10px rgba(0,0,0,.12)}
+.brand{display:flex; align-items:center; gap:12px; padding:12px 0 8px}
+.brand svg{flex:none}
+.brand h1{margin:0; font-size:19px; line-height:1.3}
+.brand p{margin:0; font-size:13px; opacity:.85}
+.stepinfo{display:flex; justify-content:space-between; font-size:13px; padding-bottom:8px; opacity:.95}
+.progress{height:4px; background:rgba(255,255,255,.25)}
+.progress i{display:block; height:100%; width:20%; background:var(--accent); transition:width .25s}
+
+main.wrap{padding:16px 16px calc(130px + env(safe-area-inset-bottom))}
+.step[hidden]{display:none}
+.step h2{font-size:18px; margin:4px 0 12px; color:var(--brand)}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px; margin-bottom:14px; box-shadow:var(--shadow)}
+.card h3{margin:0 0 12px; font-size:16px}
+.hint{color:var(--muted); font-size:13.5px; margin:-4px 0 12px}
+
+/* الحقول */
+.field{margin-bottom:14px}
+.field:last-child{margin-bottom:0}
+.field>label,.field>.lbl{display:block; font-weight:600; font-size:15px; margin-bottom:6px}
+.req{color:var(--danger); font-weight:700}
+input[type=text],input[type=tel],select,textarea{
+  width:100%; font:inherit; font-size:17px; color:var(--ink); background:var(--surface);
+  border:1.5px solid var(--line); border-radius:12px; padding:12px 14px; min-height:52px;
+  outline:none; transition:border-color .15s, box-shadow .15s; -webkit-appearance:none; appearance:none;
+}
+select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:18px 23px,12px 23px; background-size:6px 6px; background-repeat:no-repeat; padding-left:36px}
+textarea{min-height:88px; resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-soft)}
+input[dir=ltr]{text-align:right}
+input::placeholder,textarea::placeholder{color:var(--muted); opacity:.75}
+.err{display:none; color:var(--danger); font-size:13.5px; margin-top:6px}
+.invalid .err{display:block}
+.invalid input,.invalid select,.invalid textarea{border-color:var(--danger); background:var(--danger-soft)}
+.invalid .seg span{border-color:var(--danger)}
+
+/* التاريخ */
+.date{display:grid; grid-template-columns:1fr 1fr 1.4fr; gap:8px}
+.date input{text-align:center}
+.date small{display:block; text-align:center; color:var(--muted); font-size:12px; margin-top:2px}
+
+/* اختيارات */
+.seg{display:flex; flex-wrap:wrap; gap:8px}
+.seg label{flex:1 1 auto; min-width:calc(50% - 4px); position:relative}
+.seg.three label{min-width:calc(33.3% - 6px)}
+.seg input{position:absolute; opacity:0; pointer-events:none}
+.seg span{display:flex; align-items:center; justify-content:center; min-height:48px; padding:8px 10px; text-align:center;
+  border:1.5px solid var(--line); border-radius:12px; background:var(--surface); font-weight:600; cursor:pointer; user-select:none}
+.seg input:checked+span{background:var(--brand); border-color:var(--brand); color:var(--brand-ink)}
+.seg input:focus-visible+span{box-shadow:0 0 0 3px var(--brand-soft)}
+.chips{display:flex; flex-wrap:wrap; gap:8px}
+.chips label{position:relative}
+.chips input{position:absolute; opacity:0; pointer-events:none}
+.chips span{display:inline-flex; align-items:center; min-height:40px; padding:6px 14px; border:1.5px solid var(--line); border-radius:999px; cursor:pointer; font-size:15px; user-select:none}
+.chips input:checked+span{background:var(--brand-soft); border-color:var(--brand); color:var(--brand); font-weight:700}
+.chips input:checked+span::before{content:"✓"; margin-left:6px}
+.check{display:flex; gap:10px; align-items:flex-start; cursor:pointer; font-size:15px}
+.check input{width:22px; height:22px; margin:2px 0 0; accent-color:var(--brand); flex:none}
+.inline-check{margin-top:8px; font-size:14px; color:var(--muted)}
+
+/* الأفراد */
+.person{position:relative}
+.person-head{display:flex; align-items:center; gap:10px; margin-bottom:12px}
+.badge{display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:50%; background:var(--brand-soft); color:var(--brand); font-weight:700; font-size:14px; flex:none}
+.person-head strong{flex:1}
+.icon-btn{border:0; background:none; color:var(--danger); font:inherit; font-size:14px; padding:8px; cursor:pointer; border-radius:8px}
+.add-btn{width:100%; min-height:52px; border:1.5px dashed var(--brand); background:transparent; color:var(--brand); font:inherit; font-weight:700; border-radius:12px; cursor:pointer}
+.auto-list{list-style:none; margin:0; padding:0}
+.auto-list li{display:flex; justify-content:space-between; gap:8px; padding:8px 0; border-bottom:1px dashed var(--line); font-size:15px}
+.auto-list li:last-child{border-bottom:0}
+.auto-list em{font-style:normal; color:var(--muted); font-size:13px}
+
+.stats{display:grid; grid-template-columns:repeat(4,1fr); gap:8px}
+.stat{background:var(--brand-soft); border-radius:12px; padding:8px 4px; text-align:center}
+.stat b{display:block; font-size:22px; color:var(--brand); line-height:1.2}
+.stat span{font-size:12px; color:var(--muted)}
+.stats.wide{grid-template-columns:repeat(3,1fr)}
+
+/* المراجعة */
+.review dl{margin:0; display:grid; grid-template-columns:auto 1fr; gap:6px 12px; font-size:15px}
+.review dt{color:var(--muted)}
+.review dd{margin:0; font-weight:600; word-break:break-word}
+.review .edit{float:left; font-size:14px; color:var(--brand); background:none; border:0; font:inherit; font-weight:700; cursor:pointer; padding:0}
+.review table{width:100%; border-collapse:collapse; font-size:14px}
+.review th,.review td{text-align:right; padding:6px 4px; border-bottom:1px solid var(--line)}
+.review th{color:var(--muted); font-weight:600}
+
+/* التنقل */
+.nav{position:fixed; bottom:0; left:0; right:0; z-index:5; background:var(--surface); border-top:1px solid var(--line);
+  padding:10px 0 calc(10px + env(safe-area-inset-bottom))}
+.nav .wrap{display:flex; gap:10px}
+.btn{flex:1; min-height:52px; border-radius:12px; font:inherit; font-size:17px; font-weight:700; cursor:pointer; border:1.5px solid var(--brand)}
+.btn.primary{background:var(--brand); color:var(--brand-ink)}
+.btn.ghost{background:transparent; color:var(--brand); flex:0 0 34%}
+.btn[disabled]{opacity:.6; cursor:wait}
+.btn[hidden]{display:none}
+
+.toast{position:fixed; left:16px; right:16px; bottom:calc(84px + env(safe-area-inset-bottom)); z-index:9; max-width:608px; margin:0 auto;
+  background:#1d2726; color:#fff; padding:12px 16px; border-radius:12px; font-size:15px; box-shadow:0 6px 24px rgba(0,0,0,.25);
+  transform:translateY(20px); opacity:0; pointer-events:none; transition:.2s}
+.toast.show{transform:none; opacity:1}
+.toast.error{background:var(--danger); color:#fff}
+
+.done{text-align:center; padding:32px 16px}
+.done .code{display:inline-block; font-size:30px; font-weight:800; letter-spacing:1px; color:var(--brand); background:var(--brand-soft); padding:8px 20px; border-radius:12px; margin:8px 0 16px; direction:ltr}
+.done svg{margin:0 auto 8px; display:block}
+.spinner{display:inline-block; width:18px; height:18px; border:2.5px solid currentColor; border-left-color:transparent; border-radius:50%; animation:spin .8s linear infinite; vertical-align:-3px; margin-left:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (max-width:360px){ .stats{grid-template-columns:repeat(2,1fr)} }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="rgba(255,255,255,.15)"/><path d="M20 9 8 30h24L20 9Zm0 7 6.5 12h-4L20 22l-2.5 6h-4L20 16Z" fill="#fff"/></svg>
+      <div><h1>مخيم الرحمة للنازحين</h1><p>استمارة تسجيل بيانات العائلات</p></div>
+    </div>
+    <div class="stepinfo"><span id="stepTitle">بيانات رب الأسرة</span><span id="stepCount">الخطوة 1 من 5</span></div>
+  </div>
+  <div class="progress"><i id="bar"></i></div>
+</header>
+
+<main class="wrap">
+<form id="form" novalidate autocomplete="off" onsubmit="return false">
+
+  <!-- 1 رب الأسرة -->
+  <section class="step" data-step="1" data-title="بيانات رب الأسرة">
+    <div class="card">
+      <h3>البيانات الأساسية لرب الأسرة</h3>
+      <div class="field">
+        <label for="headName">الاسم رباعي <b class="req">*</b></label>
+        <input id="headName" name="headName" type="text" maxlength="100" enterkeyhint="next" autocapitalize="off" spellcheck="false" placeholder="الاسم الأول، الأب، الجد، العائلة">
+        <small class="err"></small>
+      </div>
+      <div class="field">
+        <label for="headId">رقم الهوية <b class="req">*</b></label>
+        <input id="headId" name="headId" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="9" data-digits enterkeyhint="next"  placeholder="9 أرقام">
+        <small class="err"></small>
+      </div>
+      <div class="field">
+        <span class="lbl">الجنس <b class="req">*</b></span>
+        <div class="seg">
+          <label><input type="radio" name="headGender" value="ذكر"><span>ذكر</span></label>
+          <label><input type="radio" name="headGender" value="أنثى"><span>أنثى</span></label>
+        </div>
+        <small class="err"></small>
+      </div>
+      <div class="field">
+        <span class="lbl">تاريخ الميلاد <b class="req">*</b></span>
+        <div class="date" id="headDob"></div>
+        <small class="err"></small>
+      </div>
+      <div class="field">
+        <span class="lbl">الحالة الاجتماعية <b class="req">*</b></span>
+        <div class="seg">
+          <label><input type="radio" name="marital" value="متزوج"><span data-m="متزوج" data-f="متزوجة">متزوج/ة</span></label>
+          <label><input type="radio" name="marital" value="أعزب"><span data-m="أعزب" data-f="عزباء">أعزب/عزباء</span></label>
+          <label><input type="radio" name="marital" value="أرمل"><span data-m="أرمل" data-f="أرملة">أرمل/ة</span></label>
+          <label><input type="radio" name="marital" value="مطلق"><span data-m="مطلق" data-f="مطلقة">مطلق/ة</span></label>
+        </div>
+        <small class="err"></small>
+      </div>
+    </div>
+
+    <div class="card" data-when="marital=متزوج" hidden>
+      <h3 id="spouseTitle">بيانات الزوجة</h3>
+      <div id="spouses"></div>
+      <button type="button" class="add-btn" id="addSpouse">+ إضافة زوجة أخرى</button>
+    </div>
+
+    <div class="card">
+      <h3>أرقام التواصل</h3>
+      <div class="field">
+        <label for="phone">رقم الجوال الأساسي <b class="req">*</b></label>
+        <input id="phone" name="phone" type="tel" inputmode="tel" maxlength="16" data-phone enterkeyhint="next" dir="ltr" placeholder="059xxxxxxx" autocomplete="tel">
+        <small class="err"></small>
+      </div>
+      <div class="field">
+        <label for="whatsapp">رقم الواتساب <b class="req">*</b></label>
+        <label class="check inline-check"><input type="checkbox" name="waSame" id="waSame"> نفس رقم الجوال الأساسي</label>
+        <div data-when="waSame=false" style="margin-top:8px">
+          <input id="whatsapp" name="whatsapp" type="tel" inputmode="tel" maxlength="16" data-phone enterkeyhint="next" dir="ltr" placeholder="059xxxxxxx">
+        </div>
+        <small class="err"></small>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 السكن -->
+  <section class="step" data-step="2" data-title="السكن والنزوح" hidden>
+    <div class="card">
+      <h3>المكان الأصلي قبل النزوح</h3>
+      <div class="field">
+        <label for="origGov">المحافظة <b class="req">*</b></label>
+        <select id="origGov" name="origGov">
+          <option value="">اختر المحافظة</option>
+          <option>شمال غزة</option><option>غزة</option><option>دير البلح</option><option>خانيونس</option><option>رفح</option><option>أخرى</option>
+        </select>
+        <small class="err"></small>
+      </div>
+      <div class="field">
+        <label for="origCity">المدينة / البلدة <b class="req">*</b></label>
+        <input id="origCity" name="origCity" type="text" list="cityList" maxlength="80" enterkeyhint="next" placeholder="اكتب أو اختر من القائمة">
+        <datalist id="cityList"></datalist>
+        <small class="err"></small>
+      </div>
+      <div class="field">
+        <label for="origHood">الحي <b class="req">*</b></label>
+        <input id="origHood" name="origHood" type="text" maxlength="80" enterkeyhint="next" placeholder="مثال: الشيخ رضوان">
+        <small class="err"></small>
+      </div>
+    </div>
+    <div class="card">
+      <h3>مكان النزوح الحالي</h3>
+      <div class="field">
+        <span class="lbl">داخل المخيم أم خارجه؟ <b class="req">*</b></span>
+        <div class="seg">
+          <label><input type="radio" name="block" value="داخلي"><span>داخلي</span></label>
+          <label><input type="radio" name="block" value="خارجي"><span>خارجي</span></label>
+        </div>
+        <small class="err"></small>
+      </div>
+      <div class="field">
+        <label for="sector">مكان النزوح الحالي <b class="req">*</b></label>
+        <input id="sector" name="sector" type="text" maxlength="100" enterkeyhint="next" placeholder="مثال: المواصي – قرب مسجد ...">
+        <small class="err"></small>
+      </div>
+      <div class="field">
+        <label for="tent">نوع الخيمة <b class="req">*</b></label>
+        <select id="tent" name="tent">
+          <option value="">اختر نوع الخيمة</option>
+          <option>قطرية</option><option>مصرية</option><option>قبة</option><option>صينية</option><option>مصنوعة من أخشاب وشوادر</option>
+        </select>
+        <small class="err"></small>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 الأفراد -->
+  <section class="step" data-step="3" data-title="أفراد الأسرة" hidden>
+    <div class="card">
+      <h3>عدد أفراد الأسرة</h3>
+      <div class="field">
+        <label for="total">إجمالي عدد أفراد الأسرة (مع رب الأسرة) <b class="req">*</b></label>
+        <input id="total" name="total" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" data-digits enterkeyhint="done" >
+        <small class="err"></small>
+      </div>
+      <p class="hint">مُدرجون تلقائياً ولا داعي لإعادة إدخالهم:</p>
+      <ul class="auto-list" id="autoList"></ul>
+    </div>
+
+    <div id="members"></div>
+    <button type="button" class="add-btn" id="addMember">+ إضافة فرد</button>
+
+    <div class="card" style="margin-top:14px">
+      <h3>ملخص الأسرة (يُحسب تلقائياً)</h3>
+      <div class="stats" id="liveStats"></div>
+    </div>
+  </section>
+
+  <!-- 4 الصحة -->
+  <section class="step" data-step="4" data-title="الاحتياجات الخاصة والصحة" hidden>
+    <div class="card">
+      <div class="field">
+        <span class="lbl">هل يوجد أفراد ذوو إعاقة في الأسرة؟ <b class="req">*</b></span>
+        <div class="seg"><label><input type="radio" name="hasDisability" value="نعم"><span>نعم</span></label><label><input type="radio" name="hasDisability" value="لا"><span>لا</span></label></div>
+        <small class="err"></small>
+      </div>
+      <div data-when="hasDisability=نعم" hidden>
+        <div class="field">
+          <label for="disabilityCount">عدد الأفراد ذوي الإعاقة <b class="req">*</b></label>
+          <input id="disabilityCount" name="disabilityCount" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" data-digits >
+          <small class="err"></small>
+        </div>
+        <div class="field">
+          <span class="lbl">الأجهزة المساندة المطلوبة</span>
+          <div class="chips" data-group="disabilityAids"></div>
+        </div>
+        <div class="field">
+          <label for="disabilityDetails">نوع الإعاقة / تفاصيل أخرى</label>
+          <textarea id="disabilityDetails" name="disabilityDetails" maxlength="500" placeholder="مثال: إعاقة حركية لدى الابن، يحتاج كرسياً متحركاً"></textarea>
+          <small class="err"></small>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <span class="lbl">هل يوجد أمراض مزمنة أو حالات حرجة تتطلب علاجاً مستمراً؟ <b class="req">*</b></span>
+        <div class="seg"><label><input type="radio" name="hasChronic" value="نعم"><span>نعم</span></label><label><input type="radio" name="hasChronic" value="لا"><span>لا</span></label></div>
+        <small class="err"></small>
+      </div>
+      <div data-when="hasChronic=نعم" hidden>
+        <div class="field">
+          <label for="chronicCount">عدد المرضى في الأسرة <b class="req">*</b></label>
+          <input id="chronicCount" name="chronicCount" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" data-digits >
+          <small class="err"></small>
+        </div>
+        <div class="field">
+          <span class="lbl">المرض</span>
+          <div class="chips" data-group="chronicTypes"></div>
+        </div>
+        <div class="field">
+          <label for="chronicDetails">العلاج المطلوب / تفاصيل</label>
+          <textarea id="chronicDetails" name="chronicDetails" maxlength="500" placeholder="مثال: الأب مريض سكري ويحتاج إنسولين"></textarea>
+          <small class="err"></small>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <span class="lbl">هل يوجد نساء حوامل أو مرضعات في الأسرة؟ <b class="req">*</b></span>
+        <div class="seg"><label><input type="radio" name="hasPregnant" value="نعم"><span>نعم</span></label><label><input type="radio" name="hasPregnant" value="لا"><span>لا</span></label></div>
+        <small class="err"></small>
+      </div>
+      <div data-when="hasPregnant=نعم" hidden>
+        <div class="field">
+          <label for="pregnantCount">عدد الحوامل</label>
+          <input id="pregnantCount" name="pregnantCount" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" data-digits  placeholder="0">
+          <small class="err"></small>
+        </div>
+        <div class="field">
+          <label for="nursingCount">عدد المرضعات</label>
+          <input id="nursingCount" name="nursingCount" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" data-digits  placeholder="0">
+          <small class="err"></small>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label for="notes">ملاحظات إضافية (اختياري)</label>
+        <textarea id="notes" name="notes" maxlength="1000"></textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 المراجعة -->
+  <section class="step review" data-step="5" data-title="المراجعة والإرسال" hidden>
+    <div id="review"></div>
+    <div class="card">
+      <div class="field">
+        <label class="check"><input type="checkbox" name="consent" id="consent"> أقرّ بأن البيانات المدخلة صحيحة، وأوافق على استخدامها من إدارة مخيم الرحمة لأغراض تنظيم المساعدات فقط.</label>
+        <small class="err"></small>
+      </div>
+    </div>
+  </section>
+</form>
+
+<section id="done" class="done card" hidden>
+  <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="32" fill="var(--brand-soft)"/><path d="M19 33l9 9 17-19" fill="none" stroke="var(--ok)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <h2 style="margin:0">تم تسجيل العائلة بنجاح</h2>
+  <p style="color:var(--muted);margin:8px 0 0">رقم التسجيل الخاص بعائلتكم:</p>
+  <div class="code" id="doneCode"></div>
+  <p style="margin:0 0 20px">يرجى الاحتفاظ بهذا الرقم (صورة شاشة) لمراجعة الإدارة عند الحاجة.</p>
+  <button type="button" class="btn primary" id="newFamily" style="width:100%">تسجيل عائلة أخرى</button>
+</section>
+</main>
+
+<nav class="nav" id="nav">
+  <div class="wrap">
+    <button type="button" class="btn ghost" id="prevBtn" hidden>السابق</button>
+    <button type="button" class="btn primary" id="nextBtn">التالي</button>
+  </div>
+</nav>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+const STEPS = 5, MAX_MEMBERS = 30, DRAFT_KEY = 'rahma-draft-v1';
+const API_URL = 'https://script.google.com/macros/s/AKfycby6ALeAxtxzDUdHrPn7g285WXP_Fo35F-oUSEWTqqwEx4FEDyJ1-YJXkpEps9rwMBPVBA/exec';
+const AIDS = ['كرسي متحرك','عكازات','ووكر (مشاية)','سماعات أذن','نظارات طبية','طرف صناعي','فرشة طبية','حفاضات كبار'];
+const DISEASES = ['ضغط','سكري','قلب','فشل كلوي / غسيل كلى','ربو / أمراض صدرية','سرطان','صرع','أمراض نفسية','أخرى'];
+const RELATIONS = ['ابن','ابنة','أب','أم','أخ','أخت','حفيد','حفيدة','جد','جدة','زوجة ابن','زوج ابنة','ابن أخ','ابنة أخ','قريب آخر'];
+const MALE_REL = ['ابن','أب','أخ','حفيد','جد','زوج ابنة','ابن أخ'];
+const FEMALE_REL = ['ابنة','أم','أخت','حفيدة','جدة','زوجة ابن','ابنة أخ'];
+const CITIES = {
+  'شمال غزة':['جباليا','مخيم جباليا','بيت لاهيا','بيت حانون','أم النصر'],
+  'غزة':['مدينة غزة','مخيم الشاطئ','الزهراء','المغراقة','جحر الديك'],
+  'دير البلح':['دير البلح','النصيرات','مخيم النصيرات','البريج','المغازي','الزوايدة','المصدر','وادي السلقا'],
+  'خانيونس':['خانيونس','مخيم خانيونس','بني سهيلا','عبسان الكبيرة','عبسان الصغيرة','خزاعة','القرارة','الفخاري','المواصي'],
+  'رفح':['رفح','مخيم رفح','الشوكة','النصر','تل السلطان'],
+};
+
+const $ = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+const form = $('#form');
+let step = 1, uid = 0;
+
+/* ---------- أدوات ---------- */
+const toLatin = s => String(s == null ? '' : s)
+  .replace(/[٠-٩]/g, c => c.charCodeAt(0) - 0x660)
+  .replace(/[۰-۹]/g, c => c.charCodeAt(0) - 0x6F0);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clean = s => toLatin(s).replace(/\s+/g, ' ').trim();
+const isQuad = s => { s = clean(s); return s.split(' ').length >= 4 && /^[؀-ۿa-zA-Z\s'\-]+$/.test(s); };
+function isValidId(id){
+  if (!/^\d{9}$/.test(id) || /^0+$/.test(id)) return false;
+  let sum = 0;
+  for (let i = 0; i < 9; i++){ let d = +id[i] * (i % 2 + 1); if (d > 9) d -= 9; sum += d; }
+  return sum % 10 === 0;
+}
+function normPhone(v){
+  let s = toLatin(v).replace(/[\s\-().]/g, '');
+  if (s.startsWith('00')) s = '+' + s.slice(2);
+  if (/^\+97[02]5\d{8}$/.test(s)) s = '0' + s.slice(4);
+  return s;
+}
+function dateOk(o){
+  if (!o) return false;
+  const d = +o.d, m = +o.m, y = +o.y;
+  if (!d || !m || !y || y < 1900) return false;
+  const dt = new Date(y, m - 1, d);
+  return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d && dt <= new Date();
+}
+function ageOf(o){
+  if (!dateOk(o)) return null;
+  const now = new Date(); let a = now.getFullYear() - o.y;
+  const mm = now.getMonth() + 1 - o.m;
+  if (mm < 0 || (mm === 0 && now.getDate() < o.d)) a--;
+  return Math.max(0, a);
+}
+const groupOf = a => a < 2 ? 'infants' : a <= 12 ? 'children' : a <= 59 ? 'adults' : 'elderly';
+const fmtDate = o => dateOk(o) ? (+o.d) + '/' + (+o.m) + '/' + o.y : '—';
+
+function toast(msg, isErr){
+  const t = $('#toast'); t.textContent = msg; t.className = 'toast show' + (isErr ? ' error' : '');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.className = 'toast', isErr ? 6000 : 3000);
+}
+
+/* ---------- عناصر قابلة للتوليد ---------- */
+function dateHTML(prefix){
+  return `<div><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" data-digits data-part="d" id="${prefix}d" aria-label="اليوم" placeholder="يوم" enterkeyhint="next"><small>يوم</small></div>
+  <div><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" data-digits data-part="m" aria-label="الشهر" placeholder="شهر" enterkeyhint="next"><small>شهر</small></div>
+  <div><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" data-digits data-part="y" aria-label="السنة" placeholder="سنة" enterkeyhint="next"><small>سنة</small></div>`;
+}
+const readDate = box => ({ d: +($('[data-part=d]', box).value || 0), m: +($('[data-part=m]', box).value || 0), y: +($('[data-part=y]', box).value || 0) });
+function writeDate(box, o){
+  if (!o) return;
+  $('[data-part=d]', box).value = o.d || ''; $('[data-part=m]', box).value = o.m || ''; $('[data-part=y]', box).value = o.y || '';
+}
+
+function personCard(kind, data){
+  const id = ++uid, member = kind === 'member';
+  const el = document.createElement('div');
+  el.className = 'person' + (member ? ' card' : '');
+  el.dataset.kind = kind;
+  el.innerHTML = `
+    <div class="person-head"><span class="badge"></span><strong class="ptitle"></strong>
+      <button type="button" class="icon-btn" data-remove>حذف</button></div>
+    <div class="field"><label for="n${id}">الاسم رباعي <b class="req">*</b></label>
+      <input id="n${id}" data-f="name" type="text" maxlength="100" enterkeyhint="next" autocapitalize="off" spellcheck="false" placeholder="الاسم الأول، الأب، الجد، العائلة"><small class="err"></small></div>
+    <div class="field"><label for="i${id}">رقم الهوية ${member ? '' : '<b class="req">*</b>'}</label>
+      <input id="i${id}" data-f="id" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="9" data-digits enterkeyhint="next"  placeholder="9 أرقام">
+      ${member ? '<label class="check inline-check"><input type="checkbox" data-f="noId"> لا يملك رقم هوية بعد (مولود جديد)</label>' : ''}
+      <small class="err"></small></div>
+    ${member ? `
+    <div class="field"><label for="r${id}">صلة القرابة برب الأسرة <b class="req">*</b></label>
+      <select id="r${id}" data-f="relation"><option value="">اختر</option>${RELATIONS.map(r => `<option>${r}</option>`).join('')}</select><small class="err"></small></div>
+    <div class="field"><span class="lbl">الجنس <b class="req">*</b></span>
+      <div class="seg"><label><input type="radio" name="g${id}" data-f="gender" value="ذكر"><span>ذكر</span></label>
+      <label><input type="radio" name="g${id}" data-f="gender" value="أنثى"><span>أنثى</span></label></div><small class="err"></small></div>` : ''}
+    <div class="field"><span class="lbl">تاريخ الميلاد <b class="req">*</b></span>
+      <div class="date">${dateHTML('p' + id)}</div><small class="err"></small></div>`;
+  if (data){
+    $('[data-f=name]', el).value = data.name || '';
+    $('[data-f=id]', el).value = data.id || '';
+    if (member){
+      $('[data-f=noId]', el).checked = !!data.noId;
+      $('[data-f=relation]', el).value = data.relation || '';
+      const g = $$(`[data-f=gender]`, el).find(r => r.value === data.gender); if (g) g.checked = true;
+    }
+    writeDate($('.date', el), data.dob);
+  }
+  syncNoId(el);
+  return el;
+}
+function readPerson(el){
+  const g = $('[data-f=gender]:checked', el);
+  return {
+    name: clean($('[data-f=name]', el).value),
+    id: toLatin($('[data-f=id]', el).value).replace(/\D/g, ''),
+    noId: !!($('[data-f=noId]', el) || {}).checked,
+    relation: ($('[data-f=relation]', el) || {}).value || '',
+    gender: g ? g.value : '',
+    dob: readDate($('.date', el)),
+  };
+}
+function syncNoId(el){
+  const cb = $('[data-f=noId]', el); if (!cb) return;
+  const inp = $('[data-f=id]', el); inp.disabled = cb.checked; if (cb.checked) inp.value = '';
+}
+
+/* ---------- الحالة ---------- */
+const getRadio = n => { const r = form.querySelector(`input[name="${n}"]:checked`); return r ? r.value : ''; };
+const getChecks = n => $$(`[data-group="${n}"] input:checked`).map(i => i.value);
+const SIMPLE = ['headName','headId','phone','whatsapp','origGov','origCity','origHood','sector','tent','block','total',
+  'disabilityCount','disabilityDetails','chronicCount','chronicDetails','pregnantCount','nursingCount','notes'];
+const RADIOS = ['headGender','marital','hasDisability','hasChronic','hasPregnant'];
+
+function readState(){
+  const s = {};
+  SIMPLE.forEach(n => s[n] = form.elements[n].value);
+  RADIOS.forEach(n => s[n] = getRadio(n));
+  s.waSame = $('#waSame').checked;
+  s.consent = $('#consent').checked;
+  s.dob = readDate($('#headDob'));
+  s.disabilityAids = getChecks('disabilityAids');
+  s.chronicTypes = getChecks('chronicTypes');
+  s.spouses = $$('#spouses .person').map(readPerson);
+  s.members = $$('#members .person').map(readPerson);
+  return s;
+}
+function payload(){
+  const s = readState();
+  if (s.marital !== 'متزوج') s.spouses = [];
+  s.spouses.forEach(p => { delete p.relation; delete p.gender; delete p.noId; });
+  return s;
+}
+
+function persons(s){
+  const headG = s.headGender, spG = headG === 'أنثى' ? 'ذكر' : 'أنثى';
+  const list = [{ name: clean(s.headName), id: s.headId, gender: headG, dob: s.dob, relation: 'رب الأسرة' }];
+  if (s.marital === 'متزوج') s.spouses.forEach(p => list.push(Object.assign({}, p, { gender: spG, relation: headG === 'أنثى' ? 'زوج' : 'زوجة' })));
+  return list.concat(s.members);
+}
+function stats(s){
+  const st = { total: 0, males: 0, females: 0, infants: 0, children: 0, adults: 0, elderly: 0 };
+  persons(s).forEach(p => {
+    st.total++;
+    if (p.gender === 'ذكر') st.males++; else if (p.gender === 'أنثى') st.females++;
+    const a = ageOf(p.dob); if (a !== null) st[groupOf(a)]++;
+  });
+  return st;
+}
+
+/* ---------- المسودة ---------- */
+let saveT;
+function saveDraft(){
+  clearTimeout(saveT);
+  saveT = setTimeout(() => { try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ step, s: readState() })); } catch (e) {} }, 400);
+}
+function loadDraft(){
+  let d; try { d = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch (e) { d = null; }
+  if (!d || !d.s) return false;
+  const s = d.s;
+  if (!clean(s.headName) && !s.headId && !(s.members || []).length) return false;
+  SIMPLE.forEach(n => { if (s[n] != null) form.elements[n].value = s[n]; });
+  RADIOS.forEach(n => { const r = form.querySelector(`input[name="${n}"][value="${s[n]}"]`); if (r) r.checked = true; });
+  $('#waSame').checked = !!s.waSame;
+  writeDate($('#headDob'), s.dob);
+  (s.disabilityAids || []).forEach(v => { const c = $(`[data-group=disabilityAids] input[value="${v}"]`); if (c) c.checked = true; });
+  (s.chronicTypes || []).forEach(v => { const c = $(`[data-group=chronicTypes] input[value="${v}"]`); if (c) c.checked = true; });
+  (s.spouses || []).forEach(p => $('#spouses').appendChild(personCard('spouse', p)));
+  (s.members || []).forEach(p => $('#members').appendChild(personCard('member', p)));
+  updateOrigCity();
+  return d.step || 1;
+}
+function clearDraft(){ try { localStorage.removeItem(DRAFT_KEY); } catch (e) {} }
+
+/* ---------- العرض الديناميكي ---------- */
+function refresh(){
+  const s = readState();
+  // الحقول الشرطية
+  $$('[data-when]').forEach(el => {
+    const [n, v] = el.dataset.when.split('=');
+    const cur = n === 'waSame' ? String($('#waSame').checked) : getRadio(n);
+    el.hidden = cur !== v;
+  });
+  // صيغ المذكر والمؤنث
+  const fem = s.headGender === 'أنثى';
+  $$('[data-m]').forEach(sp => sp.textContent = s.headGender ? (fem ? sp.dataset.f : sp.dataset.m) : sp.textContent);
+  $('#spouseTitle').textContent = fem ? 'بيانات الزوج' : 'بيانات الزوجة';
+  const spouses = $$('#spouses .person');
+  if (s.marital === 'متزوج' && !spouses.length) $('#spouses').appendChild(personCard('spouse'));
+  if (fem) $$('#spouses .person').slice(1).forEach(el => el.remove());
+  const spCount = $$('#spouses .person').length;
+  $('#addSpouse').hidden = fem || spCount >= 4;
+  $$('#spouses .person').forEach((el, i) => {
+    $('.badge', el).textContent = i + 1;
+    $('.ptitle', el).textContent = fem ? 'الزوج' : (spCount > 1 ? 'الزوجة ' + (i + 1) : 'الزوجة');
+    $('[data-remove]', el).hidden = spCount < 2;
+    el.style.borderTop = i ? '1px dashed var(--line)' : ''; el.style.paddingTop = i ? '14px' : ''; el.style.marginTop = i ? '14px' : '';
+  });
+  // الأفراد
+  $$('#members .person').forEach((el, i) => {
+    $('.badge', el).textContent = i + 1;
+    const p = readPerson(el);
+    $('.ptitle', el).textContent = p.name ? p.name.split(' ')[0] + (p.relation ? ' — ' + p.relation : '') : 'الفرد ' + (i + 1);
+  });
+  const sp = s.marital === 'متزوج' ? $$('#spouses .person').map(readPerson) : [];
+  const fixed = 1 + sp.length;
+  if (document.activeElement !== form.elements.total) form.elements.total.value = fixed + $$('#members .person').length;
+  $('#addMember').hidden = fixed + $$('#members .person').length >= MAX_MEMBERS;
+  const spRel = fem ? 'الزوج' : 'الزوجة';
+  $('#autoList').innerHTML =
+    `<li><span>${esc(clean(s.headName) || 'رب الأسرة')}</span><em>رب الأسرة</em></li>` +
+    sp.map(p => `<li><span>${esc(p.name || spRel)}</span><em>${spRel}</em></li>`).join('');
+  // الإحصائيات
+  const st = stats(s);
+  $('#liveStats').innerHTML = [['total','الإجمالي'],['males','ذكور'],['females','إناث'],['infants','رضع'],
+    ['children','أطفال'],['adults','بالغون'],['elderly','كبار سن']]
+    .map(([k, l]) => `<div class="stat"><b>${st[k]}</b><span>${l}</span></div>`).join('');
+}
+
+function syncMembersToTotal(){
+  const inp = form.elements.total;
+  const n = +toLatin(inp.value).replace(/\D/g, '');
+  if (!n) return;
+  const fixed = 1 + (getRadio('marital') === 'متزوج' ? $$('#spouses .person').length : 0);
+  let want = Math.min(n, MAX_MEMBERS) - fixed;
+  if (want < 0) { setErr(inp, 'العدد أقل من رب الأسرة ' + (fixed > 1 ? 'والزوج/الزوجة' : '') + ' (' + fixed + ')'); return; }
+  clearErr(inp);
+  const cards = $$('#members .person');
+  if (cards.length < want) for (let i = cards.length; i < want; i++) $('#members').appendChild(personCard('member'));
+  else if (cards.length > want){
+    const extra = cards.slice(want);
+    const filled = extra.some(el => { const p = readPerson(el); return p.name || p.id; });
+    if (filled && !confirm('سيتم حذف بيانات ' + extra.length + ' من الأفراد في آخر القائمة. هل تريد المتابعة؟')) { refresh(); return; }
+    extra.forEach(el => el.remove());
+  }
+  refresh(); saveDraft();
+}
+
+function updateOrigCity(){
+  $('#cityList').innerHTML = (CITIES[form.elements.origGov.value] || []).map(c => `<option value="${c}">`).join('');
+}
+
+/* ---------- التحقق ---------- */
+function fieldOf(el){ return el.closest('.field'); }
+function setErr(el, msg){ const f = fieldOf(el); if (!f) return; f.classList.add('invalid'); $('.err', f).textContent = msg; }
+function clearErr(el){ const f = fieldOf(el); if (f) f.classList.remove('invalid'); }
+// مخفي بسبب شرط (وليس لأن الخطوة غير معروضة حالياً)
+const visible = el => { const h = el.closest('[hidden]'); return !h || h.classList.contains('step'); };
+
+function validateStep(n){
+  const errs = [], s = readState();
+  const E = (el, msg) => errs.push([el, msg]);
+  const sec = $(`.step[data-step="${n}"]`);
+  $$('.invalid', sec).forEach(f => f.classList.remove('invalid'));
+
+  const checkPerson = (el, member) => {
+    const p = readPerson(el);
+    if (!isQuad(p.name)) E($('[data-f=name]', el), p.name ? 'يرجى كتابة الاسم رباعياً (4 أسماء على الأقل)' : 'هذا الحقل مطلوب');
+    if (!(member && p.noId)){
+      if (!p.id) E($('[data-f=id]', el), 'رقم الهوية مطلوب');
+      else if (!isValidId(p.id)) E($('[data-f=id]', el), 'رقم الهوية غير صحيح، تأكد من الأرقام التسعة');
+    }
+    if (member){
+      if (!p.relation) E($('[data-f=relation]', el), 'يرجى اختيار صلة القرابة');
+      if (!p.gender) E($('[data-f=gender]', el), 'يرجى تحديد الجنس');
+    }
+    if (!dateOk(p.dob)) E($('.date input', el), 'تاريخ غير صحيح');
+  };
+
+  if (n === 1){
+    if (!isQuad(s.headName)) E(form.elements.headName, s.headName.trim() ? 'يرجى كتابة الاسم رباعياً (4 أسماء على الأقل)' : 'هذا الحقل مطلوب');
+    const hid = toLatin(s.headId).replace(/\D/g, '');
+    if (!hid) E(form.elements.headId, 'رقم الهوية مطلوب');
+    else if (!isValidId(hid)) E(form.elements.headId, 'رقم الهوية غير صحيح، تأكد من الأرقام التسعة');
+    if (!s.headGender) E($('input[name=headGender]'), 'يرجى تحديد الجنس');
+    const a = ageOf(s.dob);
+    if (a === null) E($('#headDob input'), 'تاريخ غير صحيح');
+    else if (a < 15) E($('#headDob input'), 'عمر رب الأسرة يجب ألا يقل عن 15 سنة');
+    if (!s.marital) E($('input[name=marital]'), 'يرجى اختيار الحالة الاجتماعية');
+    if (s.marital === 'متزوج') $$('#spouses .person').forEach(el => checkPerson(el, false));
+    if (!/^05\d{8}$/.test(normPhone(s.phone))) E(form.elements.phone, 'رقم جوال غير صحيح (10 أرقام يبدأ بـ 059 أو 056)');
+    if (!s.waSame){
+      const w = normPhone(s.whatsapp);
+      if (!/^05\d{8}$/.test(w) && !/^\+\d{8,15}$/.test(w)) E(form.elements.whatsapp, 'رقم واتساب غير صحيح');
+    }
+  }
+  if (n === 2){
+    if (!s.origGov) E(form.elements.origGov, 'يرجى اختيار المحافظة');
+    if (!s.block) E($('input[name=block]'), 'يرجى تحديد داخل المخيم أم خارجه');
+    ['origCity','origHood','sector'].forEach(k => { if (!clean(s[k])) E(form.elements[k], 'هذا الحقل مطلوب'); });
+    if (!s.tent) E(form.elements.tent, 'يرجى اختيار نوع الخيمة');
+  }
+  if (n === 3){
+    $$('#members .person').forEach(el => checkPerson(el, true));
+  }
+  if (n === 1 || n === 3){
+    // تكرار الهويات داخل الاستمارة
+    const seen = {};
+    const all = [[form.elements.headId, toLatin(s.headId).replace(/\D/g, '')]]
+      .concat((s.marital === 'متزوج' ? $$('#spouses .person') : []).concat($$('#members .person'))
+      .map(el => [$('[data-f=id]', el), readPerson(el).id]));
+    all.forEach(([el, id]) => {
+      if (!id) return;
+      if (seen[id] && $(`.step[data-step="${n}"]`).contains(el)) E(el, 'رقم الهوية مكرر في الاستمارة');
+      seen[id] = true;
+    });
+  }
+  if (n === 4){
+    const st = stats(s);
+    if (!s.hasDisability) E($('input[name=hasDisability]'), 'يرجى الإجابة');
+    if (s.hasDisability === 'نعم'){
+      const c = +s.disabilityCount;
+      if (!c || c > st.total) E(form.elements.disabilityCount, 'العدد يجب أن يكون بين 1 و ' + st.total);
+      if (!s.disabilityAids.length && !clean(s.disabilityDetails)) E(form.elements.disabilityDetails, 'يرجى اختيار جهاز مساند أو كتابة نوع الإعاقة');
+    }
+    if (!s.hasChronic) E($('input[name=hasChronic]'), 'يرجى الإجابة');
+    if (s.hasChronic === 'نعم'){
+      const c = +s.chronicCount;
+      if (!c || c > st.total) E(form.elements.chronicCount, 'العدد يجب أن يكون بين 1 و ' + st.total);
+      if (!s.chronicTypes.length && !clean(s.chronicDetails)) E(form.elements.chronicDetails, 'يرجى اختيار المرض أو كتابة العلاج المطلوب');
+    }
+    if (!s.hasPregnant) E($('input[name=hasPregnant]'), 'يرجى الإجابة');
+    if (s.hasPregnant === 'نعم'){
+      const p = +(s.pregnantCount || 0), m = +(s.nursingCount || 0);
+      if (p + m < 1) E(form.elements.pregnantCount, 'يرجى إدخال عدد الحوامل أو المرضعات');
+      else if (p > st.females) E(form.elements.pregnantCount, 'العدد أكبر من عدد الإناث في الأسرة (' + st.females + ')');
+      else if (m > st.females) E(form.elements.nursingCount, 'العدد أكبر من عدد الإناث في الأسرة (' + st.females + ')');
+    }
+  }
+  if (n === 5 && !s.consent) E($('#consent'), 'يرجى الموافقة على الإقرار');
+
+  const shown = errs.filter(([el]) => visible(el));
+  shown.forEach(([el, msg]) => setErr(el, msg));
+  if (shown.length){
+    const f = fieldOf(shown[0][0]);
+    f.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const inp = $('input:not([type=radio]):not([type=checkbox]):not([disabled]),select,textarea', f);
+    if (inp) setTimeout(() => inp.focus({ preventScroll: true }), 350);
+  }
+  return shown.length === 0;
+}
+
+/* ---------- المراجعة ---------- */
+function renderReview(){
+  const s = readState(), st = stats(s), fem = s.headGender === 'أنثى';
+  const row = (k, v) => `<dt>${k}</dt><dd>${esc(v || '—')}</dd>`;
+  const edit = n => `<button type="button" class="edit" data-goto="${n}">تعديل</button>`;
+  const marital = s.marital ? ($(`input[name=marital][value="${s.marital}"]+span`).textContent) : '';
+  const ppl = persons(s);
+  const yn = (v, extra) => v === 'نعم' ? 'نعم' + (extra ? ' — ' + extra : '') : v;
+  $('#review').innerHTML = `
+  <div class="card">${edit(1)}<h3>رب الأسرة</h3><dl>
+    ${row('الاسم', clean(s.headName))}${row('رقم الهوية', s.headId)}${row('الجنس', s.headGender)}
+    ${row('تاريخ الميلاد', fmtDate(s.dob))}${row('الحالة الاجتماعية', marital)}
+    ${row('الجوال', normPhone(s.phone))}${row('الواتساب', s.waSame ? normPhone(s.phone) : normPhone(s.whatsapp))}</dl></div>
+  <div class="card">${edit(2)}<h3>السكن والنزوح</h3><dl>
+    ${row('المكان الأصلي', [s.origGov, s.origCity, s.origHood].map(clean).filter(Boolean).join(' / '))}
+    ${row('داخل/خارج المخيم', s.block)}${row('مكان النزوح الحالي', clean(s.sector))}${row('نوع الخيمة', s.tent)}</dl></div>
+  <div class="card">${edit(3)}<h3>أفراد الأسرة (${st.total})</h3>
+    <div class="stats" style="margin-bottom:12px">${[['males','ذكور'],['females','إناث'],['infants','رضع'],['children','أطفال'],['adults','بالغون'],['elderly','كبار سن']]
+      .map(([k, l]) => `<div class="stat"><b>${st[k]}</b><span>${l}</span></div>`).join('')}</div>
+    <table><thead><tr><th>#</th><th>الاسم</th><th>القرابة</th><th>العمر</th></tr></thead><tbody>
+    ${ppl.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td>${esc(p.relation)}</td><td>${ageOf(p.dob) ?? '—'}</td></tr>`).join('')}
+    </tbody></table></div>
+  <div class="card">${edit(4)}<h3>الاحتياجات والصحة</h3><dl>
+    ${row('إعاقة', yn(s.hasDisability, s.hasDisability === 'نعم' ? s.disabilityCount + ' — ' + s.disabilityAids.concat(clean(s.disabilityDetails) || []).join('، ') : ''))}
+    ${row('أمراض مزمنة', yn(s.hasChronic, s.hasChronic === 'نعم' ? s.chronicCount + ' — ' + s.chronicTypes.concat(clean(s.chronicDetails) || []).join('، ') : ''))}
+    ${row('حوامل / مرضعات', yn(s.hasPregnant, s.hasPregnant === 'نعم' ? 'حوامل ' + (+s.pregnantCount || 0) + '، مرضعات ' + (+s.nursingCount || 0) : ''))}
+    ${clean(s.notes) ? row('ملاحظات', clean(s.notes)) : ''}</dl></div>`;
+}
+
+/* ---------- التنقل ---------- */
+function go(n){
+  step = Math.max(1, Math.min(STEPS, n));
+  $$('.step').forEach(sec => sec.hidden = +sec.dataset.step !== step);
+  const sec = $(`.step[data-step="${step}"]`);
+  $('#stepTitle').textContent = sec.dataset.title;
+  $('#stepCount').textContent = 'الخطوة ' + step + ' من ' + STEPS;
+  $('#bar').style.width = (step / STEPS * 100) + '%';
+  $('#prevBtn').hidden = step === 1;
+  $('#nextBtn').textContent = step === STEPS ? 'إرسال البيانات' : 'التالي';
+  if (step === 3 && !$$('#members .person').length) refresh();
+  if (step === STEPS) renderReview();
+  refresh();
+  window.scrollTo({ top: 0 });
+  saveDraft();
+}
+
+function submit(){
+  for (let i = 1; i <= STEPS; i++){
+    if (!validateStep(i)){ if (i !== step){ go(i); setTimeout(() => validateStep(i), 50); } toast('يرجى استكمال الحقول المطلوبة', true); return; }
+  }
+  if (!navigator.onLine){ toast('لا يوجد اتصال بالإنترنت. بياناتك محفوظة على الجهاز، أعد المحاولة عند توفر الاتصال.', true); return; }
+  const btn = $('#nextBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>جارٍ الإرسال...';
+  const done = r => {
+    clearDraft();
+    form.hidden = true; $('#nav').hidden = true;
+    $('#doneCode').textContent = r.code;
+    $('#done').hidden = false; window.scrollTo({ top: 0 });
+    $('#stepTitle').textContent = 'تم الإرسال'; $('#stepCount').textContent = ''; $('#bar').style.width = '100%';
+  };
+  const fail = e => {
+    btn.disabled = false; btn.textContent = 'إرسال البيانات';
+    const msg = (e && e.message) || '';
+    toast(/network|NetworkError|Failed to fetch/i.test(msg) || !msg ? 'تعذر الاتصال بالخادم. بياناتك محفوظة، حاول مرة أخرى.' : msg.replace(/^Error:\s*/, ''), true);
+  };
+  if (window.google && google.script && google.script.run){
+    google.script.run.withSuccessHandler(done).withFailureHandler(fail).submitFamily(payload());
+  } else if (location.protocol === 'https:'){
+    // مستضافة خارج Google (GitHub Pages): الإرسال إلى doPost
+    fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload()) })
+      .then(r => r.json())
+      .then(r => r.ok ? done(r) : fail(new Error(r.error)))
+      .catch(() => fail(null));
+  } else {
+    // معاينة محلية بدون خادم
+    console.log('payload', payload());
+    setTimeout(() => done({ code: 'RH-TEST' }), 600);
+  }
+}
+
+/* ---------- الأحداث ---------- */
+form.addEventListener('input', e => {
+  const t = e.target;
+  if (t.matches('[data-digits]')){
+    const v = toLatin(t.value).replace(/\D/g, '').slice(0, +t.maxLength || 99);
+    if (v !== t.value) t.value = v;
+    // انتقال تلقائي في التاريخ
+    if (t.dataset.part && v.length === +t.maxLength){
+      const next = t.parentElement.nextElementSibling; const ni = next && $('input', next);
+      if (ni) ni.focus();
+    }
+  } else if (t.matches('[data-phone]')){
+    const v = toLatin(t.value).replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '');
+    if (v !== t.value) t.value = v;
+  }
+  if (t.closest('.invalid')) clearErr(t);
+  if (t === form.elements.total) return; // يُطبَّق عند الخروج من الحقل
+  refresh(); saveDraft();
+});
+form.addEventListener('change', e => {
+  const t = e.target;
+  if (t.matches('[data-f=relation]')){
+    const card = t.closest('.person');
+    const g = MALE_REL.includes(t.value) ? 'ذكر' : FEMALE_REL.includes(t.value) ? 'أنثى' : '';
+    if (g){ const r = $$('[data-f=gender]', card).find(x => x.value === g); if (r){ r.checked = true; clearErr(r); } }
+  }
+  if (t.matches('[data-f=noId]')) { syncNoId(t.closest('.person')); clearErr(t); }
+  if (t === form.elements.origGov) updateOrigCity();
+  if (t === form.elements.total) { syncMembersToTotal(); return; }
+  if (t.matches('[type=radio],[type=checkbox]')) clearErr(t);
+  refresh(); saveDraft();
+});
+form.elements.total.addEventListener('blur', syncMembersToTotal);
+form.elements.total.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); e.target.blur(); } });
+form.addEventListener('click', e => {
+  const rm = e.target.closest('[data-remove]');
+  if (rm){
+    const card = rm.closest('.person');
+    const p = readPerson(card);
+    if ((p.name || p.id) && !confirm('هل تريد حذف ' + (p.name || 'هذا الفرد') + '؟')) return;
+    card.remove(); refresh(); saveDraft();
+  }
+  const g = e.target.closest('[data-goto]'); if (g) go(+g.dataset.goto);
+});
+// الانتقال للحقل التالي بزر "التالي" في لوحة المفاتيح
+form.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || e.target.tagName === 'TEXTAREA') return;
+  e.preventDefault();
+  const sec = e.target.closest('.step');
+  const ins = $$('input[type=text]:not([disabled]),input[type=tel]:not([disabled]),select,textarea', sec).filter(visible);
+  const i = ins.indexOf(e.target);
+  if (i >= 0 && ins[i + 1]) ins[i + 1].focus(); else e.target.blur();
+});
+$('#addSpouse').addEventListener('click', () => { const c = personCard('spouse'); $('#spouses').appendChild(c); refresh(); $('[data-f=name]', c).focus(); });
+$('#addMember').addEventListener('click', () => { const c = personCard('member'); $('#members').appendChild(c); refresh(); saveDraft(); $('[data-f=name]', c).focus(); });
+$('#nextBtn').addEventListener('click', () => {
+  if (step === STEPS) return submit();
+  if (validateStep(step)) go(step + 1); else toast('يرجى تصحيح الحقول المظللة', true);
+});
+$('#prevBtn').addEventListener('click', () => go(step - 1));
+$('#newFamily').addEventListener('click', () => { clearDraft(); location.reload(); });
+
+/* ---------- البدء ---------- */
+$('#headDob').innerHTML = dateHTML('h');
+$('[data-group=disabilityAids]').innerHTML = AIDS.map(a => `<label><input type="checkbox" value="${a}"><span>${a}</span></label>`).join('');
+$('[data-group=chronicTypes]').innerHTML = DISEASES.map(a => `<label><input type="checkbox" value="${a}"><span>${a}</span></label>`).join('');
+const resumed = loadDraft();
+go(resumed || 1);
+if (resumed) toast('تم استرجاع البيانات التي أدخلتها سابقاً على هذا الجهاز');
+})();
+</script>
+</body>
+</html>
