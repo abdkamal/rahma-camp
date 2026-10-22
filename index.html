@@ -197,6 +197,7 @@ input::placeholder,textarea::placeholder{color:var(--muted); opacity:.75}
         <li>النموذج مخصص فقط للنازحين في مخيم الرحمة، ولا يجوز مشاركته أو نشره لغير النازحين داخل المخيم.</li>
         <li>نموذج لتسجيل بيانات النازحين في مخيم الرحمة وتحديثها، لإنشاء قاعدة بيانات سليمة وصحيحة ودقيقة.</li>
         <li>البيانات سيتم حفظها وستكون سرية، ولا يمكن الاطلاع عليها لغير الجهات المختصة.</li>
+        <li>التسجيل وأي تعديل لاحق يُرسلان كطلب، ولا يُعتمدان إلا بعد مراجعة إدارة المخيم وموافقتها.</li>
         <li>سيتم مطابقة البيانات مع البيانات المتوفرة لدى الجهات المختصة، وفي حال وجود أي خطأ متعمد سيتم تجاهل التسجيل.</li>
         <li>في حال اتضح أن المسجل غير موجود في المخيم، أو اسمه معتمد في مخيم آخر، أو معتمد لدى أي جهة لإقامته في مخيم غير مخيم الرحمة، سيتم تجاهل تسجيله.</li>
         <li><strong>يُسمح بتسجيل أسرة واحدة فقط من كل جهاز وكل رقم جوال، والتسجيل لعائلة أخرى قد يحرم عائلتك من الاستفادة من الخدمات.</strong></li>
@@ -988,8 +989,11 @@ function submit(){
   const done = r => {
     clearDraft();
     const phone = normPhone(data.phone);
-    try { localStorage.setItem(REG_KEY, JSON.stringify({ code: r.code, headId: data.headId, phone, at: Date.now() })); } catch (e) {}
-    $('#doneCode').textContent = r.code;
+    try { localStorage.setItem(REG_KEY, JSON.stringify({ req: r.req, headId: data.headId, phone, at: Date.now() })); } catch (e) {}
+    $('#doneTitle').textContent = 'تم استلام طلب التسجيل';
+    $('#doneLbl').textContent = 'رقم الطلب:';
+    $('#doneCode').textContent = r.req;
+    $('#doneKeep').textContent = 'سيُعتمد التسجيل بعد مراجعة إدارة المخيم للبيانات. يرجى الاحتفاظ برقم الطلب (صورة شاشة).';
     $('#doneWa').textContent = waFull(data);
     $('#waLink').href = WA_GROUP;
     showDone();
@@ -1025,7 +1029,7 @@ function submit(){
   } else {
     // معاينة محلية بدون خادم
     console.log('payload', data);
-    setTimeout(() => done({ code: 'RH-TEST' }), 600);
+    setTimeout(() => done({ req: 'T-TEST' }), 600);
   }
 }
 
@@ -1180,13 +1184,14 @@ $('#headDob').innerHTML = dateHTML('h');
 let blocked = false;
 try {
   const reg = JSON.parse(localStorage.getItem(REG_KEY) || 'null');
-  if (reg && reg.code){
+  if (reg && (reg.code || reg.req)){
     // جهاز سجّل أسرة من قبل: إيقاف التسجيل (للتعديل يتواصل مع الإدارة)
     blocked = true;
     $('#agree').closest('.field').hidden = true;
     $('#nav').hidden = true;
     $('#prevReg').hidden = false;
-    $('#prevReg').innerHTML = `<strong>تم تسجيل أسرة من هذا الجهاز مسبقاً برقم <span dir="ltr">${esc(reg.code)}</span>، ولا يمكن تسجيل أسرة أخرى منه.</strong>
+    const ref = reg.code ? 'برقم' : 'بطلب رقم';
+    $('#prevReg').innerHTML = `<strong>تم تسجيل أسرة من هذا الجهاز مسبقاً ${ref} <span dir="ltr">${esc(reg.code || reg.req)}</span>، ولا يمكن تسجيل أسرة أخرى منه.</strong>
       <p style="margin:6px 0 0;color:var(--danger);font-weight:700">تنبيه: التسجيل لعائلة أخرى قد يحرم عائلتك من الاستفادة من الخدمات.</p>
       <p style="margin:6px 0 0">لتعديل بيانات أسرتك أو إضافة مواليد استخدم الزر أدناه، وفي حال وجود خطأ يرجى التواصل مع إدارة المخيم.</p>`;
   }
