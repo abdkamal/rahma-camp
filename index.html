@@ -109,6 +109,9 @@ input::placeholder,textarea::placeholder{color:var(--muted); opacity:.75}
 .check input{width:22px; height:22px; margin:2px 0 0; accent-color:var(--brand); flex:none}
 .check[hidden]{display:none}
 .inline-check{margin-top:8px; font-size:14px; color:var(--muted)}
+.wa-row{display:flex; gap:8px; margin-top:8px}
+.wa-row select{flex:0 0 120px}
+.wa-row .wa-num{flex:1}
 
 /* الأفراد */
 .person{position:relative}
@@ -262,9 +265,15 @@ input::placeholder,textarea::placeholder{color:var(--muted); opacity:.75}
       <div class="field">
         <label for="whatsapp">رقم الواتساب <b class="req">*</b></label>
         <label class="check inline-check"><input type="checkbox" name="waSame" id="waSame"> نفس رقم الجوال الأساسي</label>
-        <div data-when="waSame=false" style="margin-top:8px">
-          <input id="whatsapp" name="whatsapp" type="tel" inputmode="tel" maxlength="16" data-phone enterkeyhint="next" dir="ltr" placeholder="059xxxxxxx">
+        <div class="wa-row" dir="ltr">
+          <select id="waCode" name="waCode" aria-label="مقدمة الواتساب">
+            <option value="">المقدمة</option>
+            <option value="+970">+970</option>
+            <option value="+972">+972</option>
+          </select>
+          <span class="wa-num" data-when="waSame=false"><input id="whatsapp" name="whatsapp" type="tel" inputmode="numeric" maxlength="9" enterkeyhint="next" dir="ltr" placeholder="59xxxxxxx"></span>
         </div>
+        <p class="hint" style="margin:6px 0 0">اختر المقدمة التي يعمل عليها الواتساب، واكتب الرقم بعدها دون الصفر (يبدأ بـ 5).</p>
         <small class="err"></small>
       </div>
     </div>
@@ -486,6 +495,8 @@ function isValidId(id){
   for (let i = 0; i < 9; i++){ let d = +id[i] * (i % 2 + 1); if (d > 9) d -= 9; sum += d; }
   return sum % 10 === 0;
 }
+// رقم الواتساب كاملاً بالمقدمة: +970599123456
+function waFull(s){ return s.waCode + (s.waSame ? normPhone(s.phone).slice(1) : s.whatsapp); }
 function normPhone(v){
   let s = toLatin(v).replace(/[\s\-().]/g, '');
   if (s.startsWith('00')) s = '+' + s.slice(2);
@@ -636,7 +647,7 @@ function syncNameUI(el){
 
 /* ---------- الحالة ---------- */
 const getRadio = n => { const r = form.querySelector(`input[name="${n}"]:checked`); return r ? r.value : ''; };
-const SIMPLE = ['headName','headId','phone','whatsapp','origGov','origCity','origHood','origLandmark','sector','tent','total','notes'];
+const SIMPLE = ['headName','headId','phone','whatsapp','waCode','origGov','origCity','origHood','origLandmark','sector','tent','total','notes'];
 const RADIOS = ['headGender','marital','residency','block','housing','houseOwn'];
 
 function readState(){
@@ -855,10 +866,8 @@ function validateStep(n){
     if (!s.marital) E($('input[name=marital]'), 'يرجى اختيار الحالة الاجتماعية');
     if (s.marital === 'متزوج') $$('#spouses .person').forEach(el => checkPerson(el, false));
     if (!/^05\d{8}$/.test(normPhone(s.phone))) E(form.elements.phone, 'رقم جوال غير صحيح (10 أرقام يبدأ بـ 059 أو 056)');
-    if (!s.waSame){
-      const w = normPhone(s.whatsapp);
-      if (!/^05\d{8}$/.test(w) && !/^\+\d{8,15}$/.test(w)) E(form.elements.whatsapp, 'رقم واتساب غير صحيح');
-    }
+    if (!s.waCode) E(form.elements.waCode, 'يرجى اختيار مقدمة الواتساب (+970 أو +972)');
+    else if (!s.waSame && !/^5\d{8}$/.test(s.whatsapp)) E(form.elements.whatsapp, 'رقم الواتساب: 9 أرقام تبدأ بـ 5 (دون الصفر)');
   }
   if (n === 2){
     if (!s.residency) E($('input[name=residency]'), 'يرجى تحديد: نازح أم مقيم');
@@ -924,7 +933,7 @@ function renderReview(){
   <div class="card">${edit(1)}<h3>رب الأسرة</h3><dl>
     ${row('الاسم', clean(s.headName))}${row('رقم الهوية', s.headId)}${row('الجنس', s.headGender)}
     ${row('تاريخ الميلاد', fmtDate(s.dob))}${row('الحالة الاجتماعية', marital)}
-    ${row('الجوال', normPhone(s.phone))}${row('الواتساب', s.waSame ? normPhone(s.phone) : normPhone(s.whatsapp))}</dl></div>
+    ${row('الجوال', normPhone(s.phone))}${row('الواتساب', waFull(s))}</dl></div>
   <div class="card">${edit(2)}<h3>السكن والنزوح</h3><dl>
     ${row('صفة الأسرة', s.residency)}
     ${s.residency === 'نازح' ? row('المكان الأصلي', [s.origGov, s.origCity, s.origHood].map(clean).filter(Boolean).join(' / ')) + row('أقرب معلم', clean(s.origLandmark)) : ''}
@@ -981,7 +990,7 @@ function submit(){
     const phone = normPhone(data.phone);
     try { localStorage.setItem(REG_KEY, JSON.stringify({ code: r.code, headId: data.headId, phone, at: Date.now() })); } catch (e) {}
     $('#doneCode').textContent = r.code;
-    $('#doneWa').textContent = data.waSame ? phone : normPhone(data.whatsapp);
+    $('#doneWa').textContent = waFull(data);
     $('#waLink').href = WA_GROUP;
     showDone();
   };
@@ -1083,6 +1092,13 @@ form.addEventListener('input', e => {
       const next = t.parentElement.nextElementSibling; const ni = next && $('input', next);
       if (ni) ni.focus();
     }
+  } else if (t === form.elements.whatsapp){
+    // يقبل لصق الرقم بالمقدمة أو بالصفر، ويُبقي 9 أرقام تبدأ بـ 5
+    let v = toLatin(t.value).replace(/\D/g, '');
+    const m = v.match(/^(?:00)?(97[02])(?=5)/);
+    if (m){ form.elements.waCode.value = '+' + m[1]; v = v.slice(m[0].length); }
+    v = v.replace(/^0+/, '').slice(0, 9);
+    if (v !== t.value) t.value = v;
   } else if (t.matches('[data-phone]')){
     const v = toLatin(t.value).replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '');
     if (v !== t.value) t.value = v;
