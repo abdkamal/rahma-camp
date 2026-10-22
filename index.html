@@ -157,6 +157,11 @@ input::placeholder,textarea::placeholder{color:var(--muted); opacity:.75}
 .done .code{display:inline-block; font-size:30px; font-weight:800; letter-spacing:1px; color:var(--brand); background:var(--brand-soft); padding:8px 20px; border-radius:12px; margin:8px 0 16px; direction:ltr}
 .done svg{margin:0 auto 8px; display:block}
 .done .notice{text-align:right; margin:8px 0 0}
+.done .pin{color:var(--accent); letter-spacing:6px}
+.btn-row{display:flex; gap:10px; margin-top:6px}
+.link-btn{display:block; width:100%; margin-top:12px; min-height:48px; border-radius:12px; border:1.5px solid var(--brand); background:var(--surface); color:var(--brand); font:inherit; font-weight:700; cursor:pointer}
+#login h2{margin:0 0 6px; font-size:19px; color:var(--brand)}
+.edit-banner{background:var(--accent); color:#fff; text-align:center; font-weight:700; font-size:14px; padding:6px 10px}
 .wa-btn{display:flex; align-items:center; justify-content:center; gap:8px; margin-top:12px; background:#1fa855; color:#fff; text-decoration:none;
   min-height:52px; border-radius:12px; font-weight:700; font-size:17px}
 .spinner{display:inline-block; width:18px; height:18px; border:2.5px solid currentColor; border-left-color:transparent; border-radius:50%; animation:spin .8s linear infinite; vertical-align:-3px; margin-left:8px}
@@ -175,6 +180,7 @@ input::placeholder,textarea::placeholder{color:var(--muted); opacity:.75}
     <div class="stepinfo"><span id="stepTitle"></span><span id="stepCount"></span></div>
   </div>
   <div class="progress"><i id="bar"></i></div>
+  <div class="edit-banner" id="editBanner" hidden></div>
 </header>
 
 <main class="wrap">
@@ -199,6 +205,7 @@ input::placeholder,textarea::placeholder{color:var(--muted); opacity:.75}
       </div>
     </div>
     <div class="card notice" id="prevReg" hidden></div>
+    <button type="button" class="link-btn" data-login>عائلتك مسجلة؟ تعديل البيانات أو إضافة مواليد</button>
   </section>
 
   <!-- 1 رب الأسرة -->
@@ -391,13 +398,39 @@ input::placeholder,textarea::placeholder{color:var(--muted); opacity:.75}
   </section>
 </form>
 
+<section id="login" class="card" hidden>
+  <h2>تعديل بيانات أسرة مسجلة</h2>
+  <p class="hint" style="margin:0 0 14px">أدخل البيانات كما سُجّلت. رمز التعديل يظهر عند التسجيل، ويمكن الحصول عليه من إدارة المخيم.</p>
+  <div class="field">
+    <label for="loginId">رقم هوية رب الأسرة <b class="req">*</b></label>
+    <input id="loginId" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="9" data-digits placeholder="9 أرقام">
+  </div>
+  <div class="field">
+    <label for="loginPhone">رقم الجوال المسجل <b class="req">*</b></label>
+    <input id="loginPhone" type="tel" inputmode="tel" maxlength="16" data-phone dir="ltr" placeholder="059xxxxxxx">
+  </div>
+  <div class="field">
+    <label for="loginPin">رمز التعديل <b class="req">*</b></label>
+    <input id="loginPin" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" data-digits dir="ltr" placeholder="6 أرقام">
+  </div>
+  <div class="btn-row">
+    <button type="button" class="btn ghost" id="loginBack">رجوع</button>
+    <button type="button" class="btn primary" id="loginBtn">دخول</button>
+  </div>
+  <p class="hint" style="margin:14px 0 0">أي تعديل يُرسل كطلب، ولا يُعتمد إلا بعد مراجعة إدارة المخيم وموافقتها.</p>
+</section>
+
 <section id="done" class="done card" hidden>
   <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="32" fill="var(--brand-soft)"/><path d="M19 33l9 9 17-19" fill="none" stroke="var(--ok)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  <h2 style="margin:0">تم تسجيل العائلة بنجاح</h2>
-  <p style="color:var(--muted);margin:8px 0 0">رقم التسجيل الخاص بعائلتكم:</p>
+  <h2 style="margin:0" id="doneTitle">تم تسجيل العائلة بنجاح</h2>
+  <p style="color:var(--muted);margin:8px 0 0" id="doneLbl">رقم التسجيل الخاص بعائلتكم:</p>
   <div class="code" id="doneCode"></div>
-  <p style="margin:0 0 12px">يرجى الاحتفاظ بهذا الرقم (صورة شاشة) لمراجعة الإدارة عند الحاجة.</p>
-  <div class="card notice">
+  <div id="donePinBox">
+    <p style="color:var(--muted);margin:0">رمز التعديل (لتعديل البيانات أو إضافة مواليد لاحقاً):</p>
+    <div class="code pin" id="donePin"></div>
+  </div>
+  <p style="margin:0 0 12px" id="doneKeep">يرجى الاحتفاظ بهذين الرقمين (صورة شاشة)، ولا تعطِ رمز التعديل لأحد من خارج الأسرة.</p>
+  <div class="card notice" id="doneWaBox">
     <strong>الخطوة الأخيرة: الانضمام لمجموعة المخيم</strong>
     <p style="margin:6px 0 0">انضم إلى مجموعة واتساب المخيم من رقم الواتساب الذي سجّلته في الاستمارة <b id="doneWa" dir="ltr"></b>، حتى تتمكن الإدارة من التحقق من تسجيلكم والتواصل معكم.</p>
     <a class="wa-btn" id="waLink" href="#" target="_blank" rel="noopener">انضم لمجموعة الواتساب</a>
@@ -442,6 +475,7 @@ const $ = (s, r) => (r || document).querySelector(s);
 const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
 const form = $('#form');
 let step = 0, uid = 0, status = {};
+let EDIT = null; // عند تعديل أسرة مسجلة: { code, headId, phone, pin }
 
 /* ---------- أدوات ---------- */
 const toLatin = s => String(s == null ? '' : s)
@@ -596,7 +630,7 @@ function syncNoId(el){
 function syncNameUI(el){
   const ni = nameInfo(el), rel = $('[data-f=relation]', el).value;
   const manual = $('[data-f=manual]', el).checked;
-  const firstMode = ni.canAuto && !manual;
+  const firstMode = ni.canAuto && !manual && ni.toks.length < 3;
   $('[data-namelbl]', el).textContent = firstMode ? (rel === 'ابن' ? 'اسم الابن' : 'اسم الابنة') + ' (الاسم الأول فقط)' : 'الاسم رباعي';
   $('[data-f=name]', el).placeholder = firstMode ? 'مثال: أحمد' : 'الاسم الأول، الأب، الجد، العائلة';
   const pv = $('[data-preview]', el);
@@ -659,6 +693,7 @@ function stats(s){
 /* ---------- المسودة ---------- */
 let saveT;
 function saveDraft(){
+  if (EDIT) return; // التعديل لا يُحفظ كمسودة
   clearTimeout(saveT);
   saveT = setTimeout(() => { try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ step, s: readState(), status })); } catch (e) {} }, 400);
 }
@@ -667,16 +702,20 @@ function loadDraft(){
   if (!d || !d.s) return 0;
   const s = d.s;
   if (!clean(s.headName) && !s.headId && !(s.members || []).length) return 0;
-  SIMPLE.forEach(n => { if (s[n] != null) form.elements[n].value = s[n]; });
-  RADIOS.forEach(n => { const r = form.querySelector(`input[name="${n}"][value="${s[n]}"]`); if (r) r.checked = true; });
+  applyState(s, d.status);
+  return s.agree ? Math.max(1, d.step || 1) : 0;
+}
+function applyState(s, st){
+  SIMPLE.forEach(n => { form.elements[n].value = s[n] != null ? s[n] : ''; });
+  RADIOS.forEach(n => { $$(`input[name="${n}"]`).forEach(r => r.checked = r.value === s[n]); });
   $('#agree').checked = !!s.agree;
   $('#waSame').checked = !!s.waSame;
   writeDate($('#headDob'), s.dob);
-  status = d.status || {};
+  status = st || {};
+  $('#spouses').innerHTML = ''; $('#members').innerHTML = '';
   (s.spouses || []).forEach(p => $('#spouses').appendChild(personCard('spouse', p)));
   (s.members || []).forEach(p => $('#members').appendChild(personCard('member', p)));
   updateOrigCity();
-  return s.agree ? Math.max(1, d.step || 1) : 0;
 }
 function clearDraft(){ try { localStorage.removeItem(DRAFT_KEY); } catch (e) {} }
 
@@ -912,14 +951,14 @@ function renderReview(){
 
 /* ---------- التنقل ---------- */
 function go(n){
-  step = Math.max(0, Math.min(STEPS, n));
+  step = Math.max(EDIT ? 1 : 0, Math.min(STEPS, n));
   $$('.step').forEach(sec => sec.hidden = +sec.dataset.step !== step);
   const sec = $(`.step[data-step="${step}"]`);
   $('#stepTitle').textContent = sec.dataset.title;
   $('#stepCount').textContent = step ? 'الخطوة ' + step + ' من ' + STEPS : '';
   $('#bar').style.width = (step / STEPS * 100) + '%';
-  $('#prevBtn').hidden = step === 0;
-  $('#nextBtn').textContent = step === 0 ? 'ابدأ التسجيل' : step === STEPS ? 'إرسال البيانات' : 'التالي';
+  $('#prevBtn').hidden = step === (EDIT ? 1 : 0);
+  $('#nextBtn').textContent = step === 0 ? 'ابدأ التسجيل' : step === STEPS ? (EDIT ? 'إرسال طلب التعديل' : 'إرسال البيانات') : 'التالي';
   refresh();
   if (step >= 4) renderStatus();
   if (step === STEPS) renderReview();
@@ -933,24 +972,45 @@ function submit(){
     if (!validateStep(i)){ if (i !== step){ go(i); setTimeout(() => validateStep(i), 50); } toast('يرجى استكمال الحقول المطلوبة', true); return; }
   }
   if (!navigator.onLine){ toast('لا يوجد اتصال بالإنترنت. بياناتك محفوظة على الجهاز، أعد المحاولة عند توفر الاتصال.', true); return; }
-  const btn = $('#nextBtn'), data = payload();
+  const btn = $('#nextBtn'), data = payload(), label = btn.textContent;
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>جارٍ الإرسال...';
-  const done = r => {
-    clearDraft();
-    try { localStorage.setItem(REG_KEY, JSON.stringify({ code: r.code, at: Date.now() })); } catch (e) {}
-    form.hidden = true; $('#nav').hidden = true;
-    $('#doneCode').textContent = r.code;
-    $('#doneWa').textContent = data.waSame ? normPhone(data.phone) : normPhone(data.whatsapp);
-    $('#waLink').href = WA_GROUP;
+  const showDone = () => {
+    form.hidden = true; $('#nav').hidden = true; $('#editBanner').hidden = true;
     $('#done').hidden = false; window.scrollTo({ top: 0 });
     $('#stepTitle').textContent = 'تم الإرسال'; $('#stepCount').textContent = ''; $('#bar').style.width = '100%';
   };
+  const done = r => {
+    clearDraft();
+    const phone = normPhone(data.phone);
+    try { localStorage.setItem(REG_KEY, JSON.stringify({ code: r.code, pin: r.pin || '', headId: data.headId, phone, at: Date.now() })); } catch (e) {}
+    $('#doneCode').textContent = r.code;
+    $('#donePinBox').hidden = !r.pin; $('#donePin').textContent = r.pin || '';
+    $('#doneWa').textContent = data.waSame ? phone : normPhone(data.whatsapp);
+    $('#waLink').href = WA_GROUP;
+    showDone();
+  };
+  const doneEdit = r => {
+    // الجوال قد يتغير بعد الموافقة: نحفظ الرقم المطلوب للدخول القادم
+    try {
+      const reg = JSON.parse(localStorage.getItem(REG_KEY) || 'null') || {};
+      localStorage.setItem(REG_KEY, JSON.stringify(Object.assign(reg, { code: r.code, pin: EDIT.pin, headId: EDIT.headId, phone: EDIT.phone })));
+    } catch (e) {}
+    $('#doneTitle').textContent = 'تم إرسال طلب التعديل';
+    $('#doneLbl').textContent = 'رقم الطلب:';
+    $('#doneCode').textContent = r.req;
+    $('#donePinBox').hidden = true;
+    $('#doneKeep').textContent = 'سيتم تطبيق التعديل بعد مراجعة إدارة المخيم للبيانات والموافقة عليها. إذا أرسلتم طلباً جديداً قبل المراجعة فإنه يحل محل هذا الطلب.';
+    $('#doneWaBox').hidden = true;
+    showDone();
+  };
   const fail = e => {
-    btn.disabled = false; btn.textContent = 'إرسال البيانات';
+    btn.disabled = false; btn.textContent = label;
     const msg = (e && e.message) || '';
     toast(/network|NetworkError|Failed to fetch/i.test(msg) || !msg ? 'تعذر الاتصال بالخادم. بياناتك محفوظة، حاول مرة أخرى.' : msg.replace(/^Error:\s*/, ''), true);
   };
-  if (window.google && google.script && google.script.run){
+  if (EDIT){
+    api({ action: 'edit', headId: EDIT.headId, phone: EDIT.phone, pin: EDIT.pin, data }).then(doneEdit, fail);
+  } else if (window.google && google.script && google.script.run){
     google.script.run.withSuccessHandler(done).withFailureHandler(fail).submitFamily(data);
   } else if (location.protocol === 'https:'){
     // مستضافة خارج Google (GitHub Pages): الإرسال إلى doPost
@@ -961,8 +1021,61 @@ function submit(){
   } else {
     // معاينة محلية بدون خادم
     console.log('payload', data);
-    setTimeout(() => done({ code: 'RH-TEST' }), 600);
+    setTimeout(() => done({ code: 'RH-TEST', pin: '123456' }), 600);
   }
+}
+
+/* ---------- تعديل أسرة مسجلة ---------- */
+function api(body){
+  return fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) })
+    .then(r => r.json(), () => { throw null; })
+    .then(r => { if (!r.ok) throw new Error(r.error); return r; });
+}
+function showLogin(){
+  let reg = null; try { reg = JSON.parse(localStorage.getItem(REG_KEY) || 'null'); } catch (e) {}
+  if (reg){
+    if (reg.headId && !$('#loginId').value) $('#loginId').value = reg.headId;
+    if (reg.phone && !$('#loginPhone').value) $('#loginPhone').value = reg.phone;
+    if (reg.pin && !$('#loginPin').value) $('#loginPin').value = reg.pin;
+  }
+  form.hidden = true; $('#nav').hidden = true; $('#login').hidden = false;
+  $('#stepTitle').textContent = 'تعديل البيانات'; $('#stepCount').textContent = '';
+  window.scrollTo({ top: 0 });
+  const empty = ['#loginId', '#loginPhone', '#loginPin'].map(s => $(s)).find(i => !i.value);
+  if (empty) empty.focus();
+}
+function hideLogin(){
+  $('#login').hidden = true; form.hidden = false; $('#nav').hidden = blocked; go(0);
+}
+function doLogin(){
+  const cred = { headId: toLatin($('#loginId').value).replace(/\D/g, ''), phone: normPhone($('#loginPhone').value), pin: toLatin($('#loginPin').value).replace(/\D/g, '') };
+  if (!isValidId(cred.headId)) return toast('رقم هوية رب الأسرة غير صحيح', true);
+  if (!/^05\d{8}$/.test(cred.phone) && !/^\+\d{8,15}$/.test(cred.phone)) return toast('رقم الجوال غير صحيح', true);
+  if (!/^\d{6}$/.test(cred.pin)) return toast('رمز التعديل يتكون من 6 أرقام', true);
+  const btn = $('#loginBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>جارٍ التحقق...';
+  api(Object.assign({ action: 'login' }, cred)).then(r => {
+    btn.disabled = false; btn.textContent = 'دخول';
+    enterEdit(Object.assign({ code: r.code }, cred), r.data, r.pending);
+  }, e => {
+    btn.disabled = false; btn.textContent = 'دخول';
+    toast(e && e.message ? e.message : 'تعذر الاتصال بالخادم، حاول مرة أخرى.', true);
+  });
+}
+// تعبئة الاستمارة ببيانات الأسرة الحالية من الخادم
+function enterEdit(cred, d, pending){
+  EDIT = cred;
+  const st = { h: pick(d.head) };
+  const keyed = (list, p) => (list || []).map((x, i) => { const key = p + i; st[key] = pick(x); return Object.assign({}, x, { key }); });
+  function pick(x){ x = x || {}; return { edu: x.edu || '', spec: x.spec || '', health: (x.health || []).slice(), hdet: x.hdet || '', mat: x.mat || '' }; }
+  const s = Object.assign({}, d, { agree: true, total: '', spouses: keyed(d.spouses, 's'), members: keyed(d.members, 'm') });
+  applyState(s, st);
+  form.elements.headId.readOnly = true;
+  $('#login').hidden = true; form.hidden = false; $('#nav').hidden = false;
+  $('#editBanner').hidden = false;
+  $('#editBanner').textContent = 'وضع التعديل — أسرة رقم ' + cred.code + ' (يُرسل كطلب لمراجعة الإدارة)';
+  go(1);
+  toast(pending ? 'لديكم طلب تعديل سابق لم يُراجع بعد، وسيحل الطلب الجديد محله.' : 'تم تحميل بيانات أسرتكم، عدّل ما تريد ثم أرسل الطلب.');
 }
 
 /* ---------- الأحداث ---------- */
@@ -1038,6 +1151,20 @@ $('#nextBtn').addEventListener('click', () => {
   if (validateStep(step)) go(step + 1); else toast(step === 0 ? 'يرجى الموافقة على الشروط أولاً' : 'يرجى تصحيح الحقول المظللة', true);
 });
 $('#prevBtn').addEventListener('click', () => go(step - 1));
+$$('[data-login]').forEach(b => b.addEventListener('click', showLogin));
+$('#loginBack').addEventListener('click', hideLogin);
+$('#loginBtn').addEventListener('click', doLogin);
+$('#login').addEventListener('input', e => {
+  const t = e.target;
+  const v = t.matches('[data-phone]') ? toLatin(t.value).replace(/[^\d+]/g, '') : toLatin(t.value).replace(/\D/g, '').slice(0, +t.maxLength || 99);
+  if (v !== t.value) t.value = v;
+});
+$('#login').addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  const ins = $$('#login input'), i = ins.indexOf(e.target);
+  if (ins[i + 1]) ins[i + 1].focus(); else doLogin();
+});
 
 /* ---------- البدء ---------- */
 $('#headDob').innerHTML = dateHTML('h');
@@ -1052,7 +1179,7 @@ try {
     $('#prevReg').hidden = false;
     $('#prevReg').innerHTML = `<strong>تم تسجيل أسرة من هذا الجهاز مسبقاً برقم <span dir="ltr">${esc(reg.code)}</span>، ولا يمكن تسجيل أسرة أخرى منه.</strong>
       <p style="margin:6px 0 0;color:var(--danger);font-weight:700">تنبيه: التسجيل لعائلة أخرى قد يحرم عائلتك من الاستفادة من الخدمات.</p>
-      <p style="margin:6px 0 0">لتعديل بيانات أسرتك أو في حال وجود خطأ، يرجى التواصل مع إدارة المخيم.</p>`;
+      <p style="margin:6px 0 0">لتعديل بيانات أسرتك أو إضافة مواليد استخدم الزر أدناه، وفي حال وجود خطأ يرجى التواصل مع إدارة المخيم.</p>`;
   }
 } catch (e) {}
 const resumed = blocked ? 0 : loadDraft();
