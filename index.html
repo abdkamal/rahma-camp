@@ -157,7 +157,6 @@ input::placeholder,textarea::placeholder{color:var(--muted); opacity:.75}
 .done .code{display:inline-block; font-size:30px; font-weight:800; letter-spacing:1px; color:var(--brand); background:var(--brand-soft); padding:8px 20px; border-radius:12px; margin:8px 0 16px; direction:ltr}
 .done svg{margin:0 auto 8px; display:block}
 .done .notice{text-align:right; margin:8px 0 0}
-.done .pin{color:var(--accent); letter-spacing:6px}
 .btn-row{display:flex; gap:10px; margin-top:6px}
 .link-btn{display:block; width:100%; margin-top:12px; min-height:48px; border-radius:12px; border:1.5px solid var(--brand); background:var(--surface); color:var(--brand); font:inherit; font-weight:700; cursor:pointer}
 #login h2{margin:0 0 6px; font-size:19px; color:var(--brand)}
@@ -394,13 +393,17 @@ input::placeholder,textarea::placeholder{color:var(--muted); opacity:.75}
         <label class="check"><input type="checkbox" name="consent" id="consent"> أقرّ بأنني رب الأسرة أو أحد أفرادها البالغين، وأنني لا أسجّل بيانات أسرة غير أسرتي، وأن جميع البيانات المدخلة صحيحة، وأتحمّل المسؤولية عن أي خطأ متعمد.</label>
         <small class="err"></small>
       </div>
+      <div class="field">
+        <label class="check"><input type="checkbox" name="pledge" id="pledge"> اتعهد بالالتزام بكافة الانظمة والقوانين المنظمة للمخيم وفي حال مخالفتها لإدارة المخيم اتخاذ ما تراه مناسبا.</label>
+        <small class="err"></small>
+      </div>
     </div>
   </section>
 </form>
 
 <section id="login" class="card" hidden>
   <h2>تعديل بيانات أسرة مسجلة</h2>
-  <p class="hint" style="margin:0 0 14px">أدخل البيانات كما سُجّلت. رمز التعديل يظهر عند التسجيل، ويمكن الحصول عليه من إدارة المخيم.</p>
+  <p class="hint" style="margin:0 0 14px">أدخل رقم هوية رب الأسرة ورقم الجوال (أو الواتساب) كما سُجّلا في الاستمارة.</p>
   <div class="field">
     <label for="loginId">رقم هوية رب الأسرة <b class="req">*</b></label>
     <input id="loginId" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="9" data-digits placeholder="9 أرقام">
@@ -408,10 +411,6 @@ input::placeholder,textarea::placeholder{color:var(--muted); opacity:.75}
   <div class="field">
     <label for="loginPhone">رقم الجوال المسجل <b class="req">*</b></label>
     <input id="loginPhone" type="tel" inputmode="tel" maxlength="16" data-phone dir="ltr" placeholder="059xxxxxxx">
-  </div>
-  <div class="field">
-    <label for="loginPin">رمز التعديل <b class="req">*</b></label>
-    <input id="loginPin" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" data-digits dir="ltr" placeholder="6 أرقام">
   </div>
   <div class="btn-row">
     <button type="button" class="btn ghost" id="loginBack">رجوع</button>
@@ -425,11 +424,7 @@ input::placeholder,textarea::placeholder{color:var(--muted); opacity:.75}
   <h2 style="margin:0" id="doneTitle">تم تسجيل العائلة بنجاح</h2>
   <p style="color:var(--muted);margin:8px 0 0" id="doneLbl">رقم التسجيل الخاص بعائلتكم:</p>
   <div class="code" id="doneCode"></div>
-  <div id="donePinBox">
-    <p style="color:var(--muted);margin:0">رمز التعديل (لتعديل البيانات أو إضافة مواليد لاحقاً):</p>
-    <div class="code pin" id="donePin"></div>
-  </div>
-  <p style="margin:0 0 12px" id="doneKeep">يرجى الاحتفاظ بهذين الرقمين (صورة شاشة)، ولا تعطِ رمز التعديل لأحد من خارج الأسرة.</p>
+  <p style="margin:0 0 12px" id="doneKeep">يرجى الاحتفاظ بهذا الرقم (صورة شاشة).</p>
   <div class="card notice" id="doneWaBox">
     <strong>الخطوة الأخيرة: الانضمام لمجموعة المخيم</strong>
     <p style="margin:6px 0 0">انضم إلى مجموعة واتساب المخيم من رقم الواتساب الذي سجّلته في الاستمارة <b id="doneWa" dir="ltr"></b>، حتى تتمكن الإدارة من التحقق من تسجيلكم والتواصل معكم.</p>
@@ -475,7 +470,7 @@ const $ = (s, r) => (r || document).querySelector(s);
 const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
 const form = $('#form');
 let step = 0, uid = 0, status = {};
-let EDIT = null; // عند تعديل أسرة مسجلة: { code, headId, phone, pin }
+let EDIT = null; // عند تعديل أسرة مسجلة: { code, headId, phone }
 
 /* ---------- أدوات ---------- */
 const toLatin = s => String(s == null ? '' : s)
@@ -651,6 +646,7 @@ function readState(){
   s.agree = $('#agree').checked;
   s.waSame = $('#waSame').checked;
   s.consent = $('#consent').checked;
+  s.pledge = $('#pledge').checked;
   s.dob = readDate($('#headDob'));
   s.spouses = $$('#spouses .person').map(readPerson);
   s.members = $$('#members .person').map(readPerson);
@@ -901,6 +897,7 @@ function validateStep(n){
     });
   }
   if (n === 5 && !s.consent) E($('#consent'), 'يرجى الموافقة على الإقرار');
+  if (n === 5 && !s.pledge) E($('#pledge'), 'يرجى الموافقة على التعهد');
 
   const shown = errs.filter(([el]) => visible(el));
   shown.forEach(([el, msg]) => setErr(el, msg));
@@ -982,9 +979,8 @@ function submit(){
   const done = r => {
     clearDraft();
     const phone = normPhone(data.phone);
-    try { localStorage.setItem(REG_KEY, JSON.stringify({ code: r.code, pin: r.pin || '', headId: data.headId, phone, at: Date.now() })); } catch (e) {}
+    try { localStorage.setItem(REG_KEY, JSON.stringify({ code: r.code, headId: data.headId, phone, at: Date.now() })); } catch (e) {}
     $('#doneCode').textContent = r.code;
-    $('#donePinBox').hidden = !r.pin; $('#donePin').textContent = r.pin || '';
     $('#doneWa').textContent = data.waSame ? phone : normPhone(data.whatsapp);
     $('#waLink').href = WA_GROUP;
     showDone();
@@ -993,12 +989,11 @@ function submit(){
     // الجوال قد يتغير بعد الموافقة: نحفظ الرقم المطلوب للدخول القادم
     try {
       const reg = JSON.parse(localStorage.getItem(REG_KEY) || 'null') || {};
-      localStorage.setItem(REG_KEY, JSON.stringify(Object.assign(reg, { code: r.code, pin: EDIT.pin, headId: EDIT.headId, phone: EDIT.phone })));
+      localStorage.setItem(REG_KEY, JSON.stringify(Object.assign(reg, { code: r.code, headId: EDIT.headId, phone: EDIT.phone })));
     } catch (e) {}
     $('#doneTitle').textContent = 'تم إرسال طلب التعديل';
     $('#doneLbl').textContent = 'رقم الطلب:';
     $('#doneCode').textContent = r.req;
-    $('#donePinBox').hidden = true;
     $('#doneKeep').textContent = 'سيتم تطبيق التعديل بعد مراجعة إدارة المخيم للبيانات والموافقة عليها. إذا أرسلتم طلباً جديداً قبل المراجعة فإنه يحل محل هذا الطلب.';
     $('#doneWaBox').hidden = true;
     showDone();
@@ -1009,7 +1004,7 @@ function submit(){
     toast(/network|NetworkError|Failed to fetch/i.test(msg) || !msg ? 'تعذر الاتصال بالخادم. بياناتك محفوظة، حاول مرة أخرى.' : msg.replace(/^Error:\s*/, ''), true);
   };
   if (EDIT){
-    api({ action: 'edit', headId: EDIT.headId, phone: EDIT.phone, pin: EDIT.pin, data }).then(doneEdit, fail);
+    api({ action: 'edit', headId: EDIT.headId, phone: EDIT.phone, data }).then(doneEdit, fail);
   } else if (window.google && google.script && google.script.run){
     google.script.run.withSuccessHandler(done).withFailureHandler(fail).submitFamily(data);
   } else if (location.protocol === 'https:'){
@@ -1021,7 +1016,7 @@ function submit(){
   } else {
     // معاينة محلية بدون خادم
     console.log('payload', data);
-    setTimeout(() => done({ code: 'RH-TEST', pin: '123456' }), 600);
+    setTimeout(() => done({ code: 'RH-TEST' }), 600);
   }
 }
 
@@ -1036,22 +1031,20 @@ function showLogin(){
   if (reg){
     if (reg.headId && !$('#loginId').value) $('#loginId').value = reg.headId;
     if (reg.phone && !$('#loginPhone').value) $('#loginPhone').value = reg.phone;
-    if (reg.pin && !$('#loginPin').value) $('#loginPin').value = reg.pin;
   }
   form.hidden = true; $('#nav').hidden = true; $('#login').hidden = false;
   $('#stepTitle').textContent = 'تعديل البيانات'; $('#stepCount').textContent = '';
   window.scrollTo({ top: 0 });
-  const empty = ['#loginId', '#loginPhone', '#loginPin'].map(s => $(s)).find(i => !i.value);
+  const empty = ['#loginId', '#loginPhone'].map(s => $(s)).find(i => !i.value);
   if (empty) empty.focus();
 }
 function hideLogin(){
   $('#login').hidden = true; form.hidden = false; $('#nav').hidden = blocked; go(0);
 }
 function doLogin(){
-  const cred = { headId: toLatin($('#loginId').value).replace(/\D/g, ''), phone: normPhone($('#loginPhone').value), pin: toLatin($('#loginPin').value).replace(/\D/g, '') };
+  const cred = { headId: toLatin($('#loginId').value).replace(/\D/g, ''), phone: normPhone($('#loginPhone').value) };
   if (!isValidId(cred.headId)) return toast('رقم هوية رب الأسرة غير صحيح', true);
   if (!/^05\d{8}$/.test(cred.phone) && !/^\+\d{8,15}$/.test(cred.phone)) return toast('رقم الجوال غير صحيح', true);
-  if (!/^\d{6}$/.test(cred.pin)) return toast('رمز التعديل يتكون من 6 أرقام', true);
   const btn = $('#loginBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>جارٍ التحقق...';
   api(Object.assign({ action: 'login' }, cred)).then(r => {
