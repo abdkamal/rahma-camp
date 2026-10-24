@@ -200,14 +200,13 @@ input::placeholder,textarea::placeholder{color:var(--muted); opacity:.75}
         <li>التسجيل وأي تعديل لاحق يُرسلان كطلب، ولا يُعتمدان إلا بعد مراجعة إدارة المخيم وموافقتها.</li>
         <li>سيتم مطابقة البيانات مع البيانات المتوفرة لدى الجهات المختصة، وفي حال وجود أي خطأ متعمد سيتم تجاهل التسجيل.</li>
         <li>في حال اتضح أن المسجل غير موجود في المخيم، أو اسمه معتمد في مخيم آخر، أو معتمد لدى أي جهة لإقامته في مخيم غير مخيم الرحمة، سيتم تجاهل تسجيله.</li>
-        <li><strong>يُسمح بتسجيل أسرة واحدة فقط من كل جهاز وكل رقم جوال، والتسجيل لعائلة أخرى قد يحرم عائلتك من الاستفادة من الخدمات.</strong></li>
+        <li><strong>لا يمكن تكرار رقم الهوية أو رقم الجوال بين الأسر، فلكل أسرة رقم جوال خاص بها.</strong></li>
       </ul>
       <div class="field">
         <label class="check"><input type="checkbox" id="agree"> قرأت الشروط السابقة وأوافق عليها</label>
         <small class="err"></small>
       </div>
     </div>
-    <div class="card notice" id="prevReg" hidden></div>
     <button type="button" class="link-btn" data-login>عائلتك مسجلة؟ تعديل البيانات أو إضافة مواليد</button>
   </section>
 
@@ -1053,7 +1052,7 @@ function showLogin(){
   if (empty) empty.focus();
 }
 function hideLogin(){
-  $('#login').hidden = true; form.hidden = false; $('#nav').hidden = blocked; go(0);
+  $('#login').hidden = true; form.hidden = false; $('#nav').hidden = false; go(0);
 }
 function doLogin(){
   const cred = { headId: toLatin($('#loginId').value).replace(/\D/g, ''), phone: normPhone($('#loginPhone').value) };
@@ -1182,22 +1181,7 @@ $('#login').addEventListener('keydown', e => {
 
 /* ---------- البدء ---------- */
 $('#headDob').innerHTML = dateHTML('h');
-let blocked = false;
-try {
-  const reg = JSON.parse(localStorage.getItem(REG_KEY) || 'null');
-  if (reg && (reg.code || reg.req)){
-    // جهاز سجّل أسرة من قبل: إيقاف التسجيل (للتعديل يتواصل مع الإدارة)
-    blocked = true;
-    $('#agree').closest('.field').hidden = true;
-    $('#nav').hidden = true;
-    $('#prevReg').hidden = false;
-    const ref = reg.code ? 'برقم' : 'بطلب رقم';
-    $('#prevReg').innerHTML = `<strong>تم تسجيل أسرة من هذا الجهاز مسبقاً ${ref} <span dir="ltr">${esc(reg.code || reg.req)}</span>، ولا يمكن تسجيل أسرة أخرى منه.</strong>
-      <p style="margin:6px 0 0;color:var(--danger);font-weight:700">تنبيه: التسجيل لعائلة أخرى قد يحرم عائلتك من الاستفادة من الخدمات.</p>
-      <p style="margin:6px 0 0">لتعديل بيانات أسرتك أو إضافة مواليد استخدم الزر أدناه، وفي حال وجود خطأ يرجى التواصل مع إدارة المخيم.</p>`;
-  }
-} catch (e) {}
-const resumed = blocked ? 0 : loadDraft();
+const resumed = loadDraft();
 go(resumed);
 if (resumed) toast('تم استرجاع البيانات التي أدخلتها سابقاً على هذا الجهاز');
 })();
