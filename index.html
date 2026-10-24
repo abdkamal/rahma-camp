@@ -518,7 +518,8 @@ function ageOf(o){
   if (mm < 0 || (mm === 0 && now.getDate() < o.d)) a--;
   return Math.max(0, a);
 }
-const groupOf = a => a < 2 ? 'infants' : a <= 12 ? 'children' : a <= 59 ? 'adults' : 'elderly';
+const AGE_GROUPS = [['g0_2', 2, '0-2 سنة'], ['g3_5', 5, '3-5 سنوات'], ['g6_12', 12, '6-12 سنة'], ['g13_17', 17, '13-17 سنة'], ['adults', 59, 'بالغون'], ['elderly', Infinity, 'كبار سن']];
+const groupOf = a => AGE_GROUPS.find(g => a <= g[1])[0];
 const fmtDate = o => dateOk(o) ? pad2(o.d) + '/' + pad2(o.m) + '/' + o.y : '—';
 
 // تقسيم الاسم إلى أجزاء مع دمج الأسماء المركبة
@@ -689,7 +690,8 @@ function matEligible(p, marital){
     (p.relation === 'زوجة' || p.relation === 'زوجة ابن' || (p.relation === 'رب الأسرة' && !!marital && marital !== 'أعزب'));
 }
 function stats(s){
-  const st = { total: 0, males: 0, females: 0, infants: 0, children: 0, adults: 0, elderly: 0 };
+  const st = { total: 0, males: 0, females: 0 };
+  AGE_GROUPS.forEach(g => st[g[0]] = 0);
   persons(s).forEach(p => {
     st.total++;
     if (p.gender === 'ذكر') st.males++; else if (p.gender === 'أنثى') st.females++;
@@ -763,8 +765,7 @@ function refresh(){
     `<li><span>${esc(clean(s.headName) || 'رب الأسرة')}</span><em>رب الأسرة</em></li>` +
     sp.map(p => `<li><span>${esc(p.name || spRel)}</span><em>${spRel}</em></li>`).join('');
   const st = stats(s);
-  $('#liveStats').innerHTML = [['total','الإجمالي'],['males','ذكور'],['females','إناث'],['infants','رضع'],
-    ['children','أطفال'],['adults','بالغون'],['elderly','كبار سن']]
+  $('#liveStats').innerHTML = [['total','الإجمالي'],['males','ذكور'],['females','إناث']].concat(AGE_GROUPS.map(g => [g[0], g[2]]))
     .map(([k, l]) => `<div class="stat"><b>${st[k]}</b><span>${l}</span></div>`).join('');
 }
 
@@ -941,7 +942,7 @@ function renderReview(){
     ${row('داخل/خارج المخيم', s.block)}${row('مكان السكن الحالي', clean(s.sector))}
     ${row('المسكن', s.housing === 'خيمة' ? 'خيمة — ' + s.tent : s.housing === 'منزل' ? 'منزل — ' + s.houseOwn : '')}</dl></div>
   <div class="card">${edit(3)}<h3>أفراد الأسرة (${st.total})</h3>
-    <div class="stats" style="margin-bottom:12px">${[['males','ذكور'],['females','إناث'],['infants','رضع'],['children','أطفال'],['adults','بالغون'],['elderly','كبار سن']]
+    <div class="stats" style="margin-bottom:12px">${[['males','ذكور'],['females','إناث']].concat(AGE_GROUPS.map(g => [g[0], g[2]]))
       .map(([k, l]) => `<div class="stat"><b>${st[k]}</b><span>${l}</span></div>`).join('')}</div>
     <table><thead><tr><th>#</th><th>الاسم</th><th>العمر</th><th>تاريخ الميلاد</th></tr></thead><tbody>
     ${ppl.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(p.name)}<div class="sub">${esc(p.relation)}</div></td><td>${ageOf(p.dob) ?? '—'}</td><td>${fmtDate(p.dob)}</td></tr>`).join('')}
