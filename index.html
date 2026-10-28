@@ -410,6 +410,13 @@ input::placeholder,textarea::placeholder{color:var(--muted); opacity:.75}
   </section>
 </form>
 
+<!-- بطاقة توقف التسجيل (تُعرض عندما يكون REGISTRATION_OPEN = false) -->
+<section id="paused" class="card intro" hidden>
+  <img src="https://abdkamal.github.io/rahma-camp/logo.jpg" alt="شعار مخيم الرحمة" width="190" height="190">
+  <h2>التسجيل متوقف مؤقتاً</h2>
+  <p class="hint" style="margin:0 0 4px">سيُعاد فتح التسجيل عند إعلان إدارة المخيم.</p>
+</section>
+
 <section id="login" class="card" hidden>
   <h2>تعديل بيانات أسرة مسجلة</h2>
   <p class="hint" style="margin:0 0 14px">أدخل رقم هوية رب الأسرة ورقم الجوال (أو الواتساب) كما سُجّلا في الاستمارة.</p>
@@ -454,6 +461,7 @@ input::placeholder,textarea::placeholder{color:var(--muted); opacity:.75}
 (function(){
 'use strict';
 const STEPS = 5, MAX_MEMBERS = 30, DRAFT_KEY = 'rahma-draft-v2', REG_KEY = 'rahma-registered';
+const REGISTRATION_OPEN = false; // false = التسجيل متوقف مؤقتاً
 const API_URL = 'https://script.google.com/macros/s/AKfycby6ALeAxtxzDUdHrPn7g285WXP_Fo35F-oUSEWTqqwEx4FEDyJ1-YJXkpEps9rwMBPVBA/exec';
 const WA_GROUP = 'https://chat.whatsapp.com/LRC9ruEPwIx0vQE5VkswzJ';
 const RELATIONS = ['ابن','ابنة','أب','أم','أخ','أخت','حفيد','حفيدة','جد','جدة','زوجة ابن','زوج ابنة','ابن أخ','ابنة أخ','قريب آخر'];
@@ -1180,6 +1188,15 @@ $('#login').addEventListener('keydown', e => {
 });
 
 /* ---------- البدء ---------- */
+if (!REGISTRATION_OPEN){
+  // التسجيل متوقف: إخفاء الاستمارة والتنقل وعرض بطاقة التنبيه فقط
+  form.hidden = true;
+  $('#nav').hidden = true;
+  $('#login').hidden = true;
+  $('#done').hidden = true;
+  $('#paused').hidden = false;
+  return;
+}
 $('#headDob').innerHTML = dateHTML('h');
 const resumed = loadDraft();
 go(resumed);
