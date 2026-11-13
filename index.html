@@ -417,6 +417,19 @@ input::placeholder,textarea::placeholder{color:var(--muted); opacity:.75}
   <p class="hint" style="margin:0 0 4px">سيُعاد فتح التسجيل عند إعلان إدارة المخيم.</p>
 </section>
 
+<!-- بطاقة إدخال كود التسجيل (تظهر قبل الاستمارة) -->
+<section id="gate" class="card intro" hidden>
+  <img src="https://abdkamal.github.io/rahma-camp/logo.jpg" alt="شعار مخيم الرحمة" width="190" height="190">
+  <h2>أدخل الكود للتسجيل</h2>
+  <p class="hint" style="margin:0 0 14px">للحصول على كود التسجيل تواصل مع إدارة المخيم. يصلح الكود لمرة واحدة فقط، ويبقى صالحاً حتى تُرسل الاستمارة.</p>
+  <div class="field" style="text-align:right">
+    <label for="gateCode">الكود</label>
+    <input id="gateCode" type="password" autocomplete="off" dir="ltr" maxlength="64" placeholder="6 أرقام" inputmode="text">
+  </div>
+  <label class="check" style="margin-bottom:12px"><input type="checkbox" id="gateShow"> إظهار ما أكتبه</label>
+  <button type="button" class="btn primary" id="gateBtn" style="width:100%">دخول</button>
+</section>
+
 <section id="login" class="card" hidden>
   <h2>تعديل بيانات أسرة مسجلة</h2>
   <p class="hint" style="margin:0 0 14px">أدخل رقم هوية رب الأسرة ورقم الجوال (أو الواتساب) كما سُجّلا في الاستمارة.</p>
@@ -461,7 +474,21 @@ input::placeholder,textarea::placeholder{color:var(--muted); opacity:.75}
 (function(){
 'use strict';
 const STEPS = 5, MAX_MEMBERS = 30, DRAFT_KEY = 'rahma-draft-v2', REG_KEY = 'rahma-registered';
-const REGISTRATION_OPEN = false; // false = التسجيل متوقف مؤقتاً
+const REGISTRATION_OPEN = true; // false = التسجيل متوقف مؤقتاً
+// الدخول بالكود: يُحفظ في تبويب المتصفح فقط (يبقى صالحاً عند تحديث الصفحة)، ويُرسل مع كل طلب للتحقق في الخادم
+const ACCESS_KEY = 'rahma-access';
+let ACCESS = '', ACCESS_ADMIN = false;
+try { const a = JSON.parse(sessionStorage.getItem(ACCESS_KEY) || 'null'); if (a && a.v){ ACCESS = a.v; ACCESS_ADMIN = !!a.admin; } } catch (e) {}
+function setAccess(v, admin){
+  ACCESS = v; ACCESS_ADMIN = !!admin;
+  try { sessionStorage.setItem(ACCESS_KEY, JSON.stringify({ v, admin: !!admin })); } catch (e) {}
+}
+// الكود يُلغى بعد نجاح الإرسال، أما دخول الإدارة فيبقى
+function releaseAccess(){
+  if (ACCESS_ADMIN) return;
+  ACCESS = '';
+  try { sessionStorage.removeItem(ACCESS_KEY); } catch (e) {}
+}
 const API_URL = 'https://script.google.com/macros/s/AKfycby6ALeAxtxzDUdHrPn7g285WXP_Fo35F-oUSEWTqqwEx4FEDyJ1-YJXkpEps9rwMBPVBA/exec';
 const WA_GROUP = 'https://chat.whatsapp.com/LRC9ruEPwIx0vQE5VkswzJ';
 const RELATIONS = ['ابن','ابنة','أب','أم','أخ','أخت','حفيد','حفيدة','جد','جدة','زوجة ابن','زوج ابنة','ابن أخ','ابنة أخ','قريب آخر'];
@@ -988,6 +1015,7 @@ function submit(){
   }
   if (!navigator.onLine){ toast('لا يوجد اتصال بالإنترنت. بياناتك محفوظة على الجهاز، أعد المحاولة عند توفر الاتصال.', true); return; }
   const btn = $('#nextBtn'), data = payload(), label = btn.textContent;
+  data.access = ACCESS;
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>جارٍ الإرسال...';
   const showDone = () => {
     form.hidden = true; $('#nav').hidden = true; $('#editBanner').hidden = true;
@@ -995,6 +1023,7 @@ function submit(){
     $('#stepTitle').textContent = 'تم الإرسال'; $('#stepCount').textContent = ''; $('#bar').style.width = '100%';
   };
   const done = r => {
+    releaseAccess();
     clearDraft();
     const phone = normPhone(data.phone);
     try { localStorage.setItem(REG_KEY, JSON.stringify({ req: r.req, headId: data.headId, phone, at: Date.now() })); } catch (e) {}
@@ -1007,6 +1036,7 @@ function submit(){
     showDone();
   };
   const doneEdit = r => {
+    releaseAccess();
     // الجوال قد يتغير بعد الموافقة: نحفظ الرقم المطلوب للدخول القادم
     try {
       const reg = JSON.parse(localStorage.getItem(REG_KEY) || 'null') || {};
@@ -1043,7 +1073,7 @@ function submit(){
 
 /* ---------- تعديل أسرة مسجلة ---------- */
 function api(body){
-  return fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) })
+  return fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ access: ACCESS }, body)) })
     .then(r => r.json(), () => { throw null; })
     .then(r => { if (!r.ok) throw new Error(r.error); return r; });
 }
@@ -1197,10 +1227,53 @@ if (!REGISTRATION_OPEN){
   $('#paused').hidden = false;
   return;
 }
-$('#headDob').innerHTML = dateHTML('h');
-const resumed = loadDraft();
-go(resumed);
-if (resumed) toast('تم استرجاع البيانات التي أدخلتها سابقاً على هذا الجهاز');
+function startForm(){
+  $('#gate').hidden = true; form.hidden = false; $('#nav').hidden = false;
+  $('#headDob').innerHTML = dateHTML('h');
+  const resumed = loadDraft();
+  go(resumed);
+  if (resumed) toast('تم استرجاع البيانات التي أدخلتها سابقاً على هذا الجهاز');
+}
+
+// شاشة الكود: تُعرض قبل الاستمارة. المعاينة المحلية (بدون خادم) تتخطاها.
+const hasServer = location.protocol === 'https:' || !!(window.google && google.script && google.script.run);
+function showGate(msg){
+  form.hidden = true; $('#nav').hidden = true; $('#gate').hidden = false;
+  $('#stepTitle').textContent = 'الدخول'; $('#stepCount').textContent = '';
+  if (msg) toast(msg, true);
+  setTimeout(() => $('#gateCode').focus(), 50);
+}
+function enterGate(){
+  const v = toLatin($('#gateCode').value).trim();
+  if (!v) return toast('يرجى إدخال الكود', true);
+  const btn = $('#gateBtn'), label = btn.textContent;
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>جارٍ التحقق...';
+  api({ action: 'gate', access: v }).then(r => {
+    btn.disabled = false; btn.textContent = label;
+    setAccess(v, r.admin); $('#gateCode').value = '';
+    startForm();
+    if (r.admin) toast('تم الدخول بصلاحية الإدارة');
+  }, e => {
+    btn.disabled = false; btn.textContent = label;
+    toast(e && e.message ? e.message : 'تعذر الاتصال بالخادم، حاول مرة أخرى.', true);
+  });
+}
+$('#gateBtn').addEventListener('click', enterGate);
+$('#gateCode').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); enterGate(); } });
+$('#gateShow').addEventListener('change', e => { $('#gateCode').type = e.target.checked ? 'text' : 'password'; });
+
+if (!hasServer){
+  startForm();
+} else if (ACCESS){
+  // كود محفوظ من قبل (تحديث الصفحة): يُتحقق منه من جديد لأنه قد يكون استُخدم
+  form.hidden = true; $('#nav').hidden = true;
+  api({ action: 'gate', access: ACCESS }).then(r => { ACCESS_ADMIN = !!r.admin; startForm(); }, e => {
+    ACCESS = ''; ACCESS_ADMIN = false; try { sessionStorage.removeItem(ACCESS_KEY); } catch (x) {}
+    showGate(e && e.message ? e.message : '');
+  });
+} else {
+  showGate();
+}
 })();
 </script>
 </body>
